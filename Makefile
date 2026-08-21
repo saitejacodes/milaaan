@@ -6,7 +6,12 @@ SEED ?= 42
 DATA ?= data/run$(SEED)
 
 test:
-	$(PYTHON) -m pytest -q
+	@if $(PYTHON) -c "import pytest" >/dev/null 2>&1; then \
+	  $(PYTHON) -m pytest -q; \
+	else \
+	  echo "pytest unavailable; running the same unittest suite"; \
+	  $(PYTHON) -m unittest discover -s tests -v; \
+	fi
 
 gen:
 	$(CLI) gen --records 1200 --seed $(SEED) --profile mixed --out $(DATA)
@@ -39,4 +44,8 @@ ci: test
 	$(CLI) run --data $$T/m1 --db $$T/m1/m.db --llm mock; \
 	$(CLI) eval --run $$T/m1 --db $$T/m1/m.db --out-dir $$T/m1 --gate mixed; \
 	$(CLI) report --run $$T/m1 --db $$T/m1/m.db --out $$T/m1/report.html
-	$(PYTHON) -m pytest -q tests/test_golden_metrics.py tests/test_llm_mode_invariance.py
+	@if $(PYTHON) -c "import pytest" >/dev/null 2>&1; then \
+	  $(PYTHON) -m pytest -q tests/test_golden_metrics.py tests/test_llm_mode_invariance.py; \
+	else \
+	  $(PYTHON) -m unittest tests.test_golden_metrics tests.test_llm_mode_invariance -v; \
+	fi

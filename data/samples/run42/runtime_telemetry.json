@@ -1,0 +1,11 @@
+{
+  "llm_mode": "mock",
+  "profile": "mixed",
+  "seed": 42,
+  "stage_ms": {
+    "ingest_aggregate": 15,
+    "plane_a": 2045,
+    "plane_b": 34
+  },
+  "wall_ms": 2150
+}

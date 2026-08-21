@@ -12,7 +12,7 @@ from milaan.generator.emit import generate_to_directory
 
 class CleanPipelineGateTests(unittest.TestCase):
     def test_clean_seeds_reconcile_completely(self) -> None:
-        for seed in (1, 2):
+        for seed in (1, 2, 3, 4, 5):
             with self.subTest(seed=seed), tempfile.TemporaryDirectory() as tmp:
                 run = Path(tmp) / "run"
                 generate_to_directory(200, seed, "clean", run)
