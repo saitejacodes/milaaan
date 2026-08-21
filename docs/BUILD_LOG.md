@@ -52,3 +52,11 @@ All metrics in this file are copied from executable gates with real denominators
 - Full second `run → eval → report` cycle on seed 1: PASS; report 12,007 bytes.
 - Exact seed-42 golden metrics: PASS.
 - Mock/live functional byte equality: PASS.
+
+## Fresh-clone stranger test — PASS
+
+- Procedure: local fresh clone from committed `HEAD`, then `make demo` with no
+  pre-existing generated data or database.
+- Elapsed wall time: 3 seconds in the verification container (requirement ≤5 minutes).
+- Result: mixed gate PASS; Plane A 1,154/1,154; Plane B 21/21; exceptions 6/6;
+  false matches 0; self-contained report 12,011 bytes.
