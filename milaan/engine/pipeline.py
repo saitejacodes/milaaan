@@ -14,6 +14,7 @@ from milaan.audit import event
 from milaan.config import load_fees, load_timing, repository_root
 from milaan.engine.plane_a import match_plane_a
 from milaan.engine.plane_b import match_b0_b1
+from milaan.engine.recovery import apply_recovery, collect_recovery_hits, deferred_bank_ids
 from milaan.ingest.aggregate import aggregate_batches
 from milaan.ingest.normalize import normalize_inputs
 
@@ -86,10 +87,16 @@ def run_pipeline(data_dir: Path, database_path: Path, llm_mode: str = "mock") ->
         stage_ms["plane_a"] = round((time.perf_counter() - mark) * 1000)
 
         mark = time.perf_counter()
+        recovery_hits = collect_recovery_hits(
+            aggregated.batches, ingested.bank, timing.window_b_bd
+        )
         plane_b = match_b0_b1(
             aggregated.batches, ingested.bank, timing.window_b_bd, timing.tol_b_paise,
             initially_blocked_batches=aggregated.blocked_settlement_ids,
+            deferred_bank_ids=deferred_bank_ids(recovery_hits),
         )
+        apply_recovery(plane_b, aggregated.batches, ingested.bank, recovery_hits,
+                       timing.window_b_bd)
         for decision in plane_b.decisions:
             db.insert_decision(conn, run_id, decision)
         stage_ms["plane_b"] = round((time.perf_counter() - mark) * 1000)
