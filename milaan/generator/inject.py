@@ -74,9 +74,9 @@ def apply_injections(world: World, rng: random.Random) -> World:
     twin_b["credit_paise"] = target
     twin_b["value_date"] = twin_a["value_date"]
     twin_b["txn_date"] = twin_a["txn_date"]
-    twin_a["narration"] = "NEFT-NOREF-SETTLEMENT"
-    twin_b["narration"] = "NEFT-NOREF-SETTLEMENT"
-    twin_a["ref_no"] = twin_b["ref_no"] = "NOREF"
+    twin_a["narration"] = "NEFT-NOREF-SETTLEMENT-A"
+    twin_b["narration"] = "IMPS-NOREF-SETTLEMENT-B"
+    twin_a["ref_no"], twin_b["ref_no"] = "NOREF-A", "NOREF-B"
     twin_ids = [sid_a, sid_b, twin_a["line_id"], twin_b["line_id"]]
     _reserve(world, used, twin_ids, "T5", {"kind": "TWIN_CREDIT_TIE"})
     _remove_pair(world.expectations["plane_b_matches"], sid_a, twin_a["line_id"])
