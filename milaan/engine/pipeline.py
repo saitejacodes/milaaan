@@ -15,6 +15,8 @@ from milaan.config import load_fees, load_timing, repository_root
 from milaan.engine.plane_a import match_plane_a
 from milaan.engine.plane_b import match_b0_b1
 from milaan.engine.recovery import apply_recovery, collect_recovery_hits, deferred_bank_ids
+from milaan.exceptions.actions import with_canonical_language
+from milaan.exceptions.triage import triage_plane_b
 from milaan.ingest.aggregate import aggregate_batches
 from milaan.ingest.normalize import normalize_inputs
 
@@ -101,9 +103,15 @@ def run_pipeline(data_dir: Path, database_path: Path, llm_mode: str = "mock") ->
             db.insert_decision(conn, run_id, decision)
         stage_ms["plane_b"] = round((time.perf_counter() - mark) * 1000)
 
+        residual = triage_plane_b(
+            aggregated.batches, ingested.bank, plane_b, timing.window_b_bd,
+            ingested.exceptions + aggregated.exceptions,
+        )
         all_exceptions = (
             ingested.exceptions + aggregated.exceptions + plane_a.exceptions + plane_b.exceptions
+            + residual
         )
+        all_exceptions = [with_canonical_language(item) for item in all_exceptions]
         for item in all_exceptions:
             db.insert_exception(conn, run_id, item)
         event(conn, run_id, "run_completed", {
