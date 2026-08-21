@@ -1,0 +1,5 @@
+settlement_cycle_bd = 2
+bank_lag_bd_choices = [0, 1]
+window_b_bd = 3
+window_a_bd = 1
+tol_b_paise = 100

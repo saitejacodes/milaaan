@@ -1,0 +1,13 @@
+gst_rate_bp = 1800
+
+[channels.UPI]
+pct_bp = 0
+flat_paise = 0
+
+[channels.CARD]
+pct_bp = 200
+flat_paise = 0
+
+[channels.NETBANKING]
+pct_bp = 100
+flat_paise = 1200
