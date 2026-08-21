@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "milaan"
-version = "1.2.1"
+version = "1.2.2"
 description = "Deterministic three-way settlement reconciliation with an LLM explanation layer"
 readme = "README.md"
 requires-python = ">=3.11"

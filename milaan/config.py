@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+import re
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
@@ -32,6 +34,40 @@ class TimingConfig:
 
 def repository_root() -> Path:
     return Path(__file__).resolve().parents[1]
+
+
+_ENV_KEY = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
+
+def load_environment(path: Path | None = None) -> Path | None:
+    """Load a small, predictable ``.env`` file without overriding the shell.
+
+    The parser intentionally supports only ``KEY=value`` (optionally prefixed by
+    ``export``) and single- or double-quoted values. Existing environment values
+    always win. This keeps local BYO-LLM setup dependency-free and avoids the
+    surprising interpolation and command execution semantics of a shell script.
+    """
+    configured = os.getenv("MILAAN_ENV_FILE")
+    candidate = path or (Path(configured) if configured else repository_root() / ".env")
+    if not candidate.is_file():
+        return None
+    for number, raw_line in enumerate(candidate.read_text(encoding="utf-8").splitlines(), 1):
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line.removeprefix("export ").lstrip()
+        key, separator, value = line.partition("=")
+        key = key.strip()
+        if not separator or not _ENV_KEY.fullmatch(key):
+            raise ValueError(f"invalid environment entry at {candidate}:{number}")
+        value = value.strip()
+        if value[:1] in {"'", '"'}:
+            if len(value) < 2 or value[-1] != value[0]:
+                raise ValueError(f"unterminated quoted value at {candidate}:{number}")
+            value = value[1:-1]
+        os.environ.setdefault(key, value)
+    return candidate
 
 
 def load_fees(path: Path | None = None) -> FeeConfig:

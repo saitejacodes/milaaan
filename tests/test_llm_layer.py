@@ -14,7 +14,7 @@ class LanguageLayerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "persistent.sqlite"
             with ResponseCache(path) as cache:
-                cache.put("k", "p", "m", "3.0", {"narrative": "safe"})
+                cache.put("k", "p", "m", "3.1", {"narrative": "safe"})
             with ResponseCache(path) as cache:
                 self.assertEqual(cache.get("k"), {"narrative": "safe"})
 
