@@ -1,0 +1,99 @@
+{
+  "completeness": {
+    "denominator": 2363,
+    "numerator": 2363,
+    "rate": 1.0
+  },
+  "exceptions": {
+    "actual_count": 6,
+    "expected_count": 6,
+    "precision": {
+      "denominator": 6,
+      "numerator": 6,
+      "rate": 1.0
+    },
+    "recall": {
+      "denominator": 6,
+      "numerator": 6,
+      "rate": 1.0
+    }
+  },
+  "false_match_count": 0,
+  "generator_version": "1.2.1",
+  "input_hashes": {
+    "bank": "064d95110e53b57148a731925ea4b3e3bb242d24c40764568d1b2dedb1de197f",
+    "fees": "32c5a294b09a72d63527b7a0428abb76588c6e0661cc0d44af3aa44c388103cb",
+    "gateway_recon": "733ff0055daf4ed600ec7f7a96b70f53c2ce26fa83a8fc640b1cb319263d64f8",
+    "orders": "57aaa6fccfae45bd10b8c0d2aec35239714ed3e48390635f423895470093b066",
+    "timing": "942b291553c685d44e5ce395fe5f0970f1395148a25e1ea0ce3fd04a0ffe308d"
+  },
+  "planes": {
+    "A": {
+      "auto_match": {
+        "denominator": 1154,
+        "numerator": 1154,
+        "rate": 1.0
+      },
+      "expected_count": 1154,
+      "false_match_count": 0,
+      "false_match_rate": {
+        "denominator": 1154,
+        "numerator": 0,
+        "rate": 0.0
+      },
+      "found_count": 1154,
+      "tier_coverage": {
+        "T0": {
+          "denominator": 601,
+          "numerator": 601,
+          "rate": 1.0
+        },
+        "T1": {
+          "denominator": 476,
+          "numerator": 476,
+          "rate": 1.0
+        },
+        "T4": {
+          "denominator": 77,
+          "numerator": 77,
+          "rate": 1.0
+        }
+      }
+    },
+    "B": {
+      "auto_match": {
+        "denominator": 21,
+        "numerator": 21,
+        "rate": 1.0
+      },
+      "expected_count": 21,
+      "false_match_count": 0,
+      "false_match_rate": {
+        "denominator": 21,
+        "numerator": 0,
+        "rate": 0.0
+      },
+      "found_count": 21,
+      "tier_coverage": {
+        "T2": {
+          "denominator": 2,
+          "numerator": 2,
+          "rate": 1.0
+        },
+        "T3": {
+          "denominator": 16,
+          "numerator": 16,
+          "rate": 1.0
+        },
+        "T6": {
+          "denominator": 3,
+          "numerator": 3,
+          "rate": 1.0
+        }
+      }
+    }
+  },
+  "profile": "mixed",
+  "schema_version": "1.2.1",
+  "seed": 42
+}
