@@ -52,3 +52,16 @@ timestamps, token usage, cost, or latency.
 
 **Why:** Functional correctness must be reproducible. Runtime observations are
 valuable but inherently environment-dependent.
+
+## ADR-007 — Integrate LLMs by API contract, not matching behavior
+
+**Decision:** The optional language layer supports OpenAI-compatible Chat
+Completions, Anthropic Messages, and Gemini `generateContent`, plus an Ollama
+shortcut. It uses one explicit user-owned configuration and no provider SDK.
+
+**Why:** These three HTTP contracts cover the major hosted and local integration
+families without coupling the accounting engine to a vendor package. Provider
+output still passes the same evidence-subset firewall, and any configuration,
+transport, shape, or content failure falls back to canonical language. An
+unknown proprietary API remains an adapter task, not a reason to make a false
+“every LLM” compatibility claim.

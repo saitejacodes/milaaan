@@ -9,7 +9,7 @@ from typing import Sequence
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="milaan")
-    parser.add_argument("--version", action="version", version="milaan 1.2.1")
+    parser.add_argument("--version", action="version", version="milaan 1.2.2")
     sub = parser.add_subparsers(dest="command", required=True)
 
     gen = sub.add_parser("gen", help="generate a deterministic synthetic run")

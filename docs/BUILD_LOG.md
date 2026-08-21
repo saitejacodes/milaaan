@@ -34,6 +34,9 @@ All metrics in this file are copied from executable gates with real denominators
 - Invented identifier test: rejected; canonical template retained.
 - Invented monetary amount test: rejected; canonical template retained.
 - Persistent cache reopen test: PASS outside the recreated run database.
+- OpenAI-compatible, Ollama, Anthropic, and Gemini request/response contracts:
+  PASS against local fakes; no key, network request, or paid call used.
+- Invalid and unsupported provider configuration: canonical fallback remains active.
 
 ## P5 report gate — PASS
 
@@ -44,7 +47,7 @@ All metrics in this file are copied from executable gates with real denominators
 
 ## Full CI — PASS
 
-- Offline tests: 40/40 passed.
+- Offline tests: 49/49 passed, including nine BYO-LLM provider/configuration tests.
 - Clean seed 1: Plane A 189/189; Plane B 23/23; exceptions 0; false matches 0.
 - Mixed seed 1: Plane A 1,139/1,139; Plane B 19/19; exceptions 6/6; false 0.
 - Mixed seed 2: Plane A 1,148/1,148; Plane B 20/20; exceptions 6/6; false 0.
