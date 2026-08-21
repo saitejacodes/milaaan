@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Milaan reconciliation report</title>
+  <style>
+    :root { --ink:#181711; --muted:#666254; --paper:#f8f5ec; --card:#fffdf7; --gold:#b18435; --green:#167454; --red:#a23a32; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--paper); font:15px/1.55 system-ui,-apple-system,Segoe UI,sans-serif; }
+    main { max-width:1120px; margin:auto; padding:42px 28px 80px; }
+    h1 { font-size:42px; margin:0 0 4px; letter-spacing:-1.5px; }
+    h2 { margin-top:44px; border-bottom:2px solid #ded7c7; padding-bottom:8px; }
+    h3 { margin:0 0 8px; }
+    .eyebrow { color:var(--gold); font-weight:800; letter-spacing:2px; text-transform:uppercase; }
+    .muted { color:var(--muted); }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; }
+    .card { background:var(--card); border:1px solid #ded7c7; border-radius:14px; padding:18px; box-shadow:0 3px 18px #554a3010; }
+    .value { font-size:28px; font-weight:800; color:var(--green); }
+    table { width:100%; border-collapse:collapse; background:var(--card); }
+    th,td { border-bottom:1px solid #e6dfcf; padding:10px; text-align:left; vertical-align:top; }
+    th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.7px; }
+    code { background:#eee8d9; padding:2px 5px; border-radius:5px; overflow-wrap:anywhere; }
+    mark { background:#ffe08a; padding:2px; border-radius:3px; }
+    .evidence { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    details { background:var(--card); border:1px solid #ded7c7; border-radius:10px; padding:10px 14px; margin:8px 0; }
+    summary { cursor:pointer; font-weight:750; }
+    pre { white-space:pre-wrap; overflow-wrap:anywhere; font-size:12px; background:#24231f; color:#f7f2e6; padding:12px; border-radius:8px; }
+    .pass { color:var(--green); font-weight:750; }
+    .warning { color:var(--red); font-weight:750; }
+    footer { margin-top:50px; color:var(--muted); font-size:12px; }
+    @media(max-width:700px){ .evidence{grid-template-columns:1fr} h1{font-size:32px} }
+    @media print { body{background:white} main{max-width:none;padding:16mm} .card,details{break-inside:avoid;box-shadow:none} }
+  </style>
+</head>
+<body><main><div class="eyebrow">AI Finance Controller · verified run</div><h1>Milaan reconciliation report</h1><p class="muted">Seed 42 · profile mixed · generator 1.2.1 · run 42-mixed-mock</p><p><strong>The books are code. The model only explains them.</strong> All functional results below come from deterministic rules and database constraints.</p><h2>Functional results</h2><div class="grid"><div class="card"><div class="muted">Plane A auto-match</div><div class="value">100.00%</div><div>1154/1154</div></div><div class="card"><div class="muted">Plane B auto-match</div><div class="value">100.00%</div><div>21/21</div></div><div class="card"><div class="muted">Exception recall</div><div class="value">100.00%</div><div>6/6</div></div><div class="card"><div class="muted">Exception precision</div><div class="value">100.00%</div><div>6/6</div></div><div class="card"><div class="muted">Completeness</div><div class="value">100.00%</div><div>2363/2363</div></div><div class="card"><div class="muted">False matches</div><div class="value">0</div><div>on this named synthetic benchmark</div></div></div><h2>Tier coverage</h2><table><thead><tr><th>Plane</th><th>Tier</th><th>Matches</th></tr></thead><tbody><tr><td>A</td><td>A0</td><td>1043</td></tr><tr><td>A</td><td>A0B</td><td>92</td></tr><tr><td>A</td><td>A1</td><td>19</td></tr><tr><td>B</td><td>B0</td><td>19</td></tr><tr><td>B</td><td>B2</td><td>2</td></tr></tbody></table><h2>Proof drill-down: signed members → batch → credit</h2><div class="evidence"><div class="card"><h3><code>setl_7sAQBptvWq3587</code></h3><table><tr><th>Member</th><th>Type</th><th>Signed net</th></tr><tr><td><code>adj_96R5bbIPRUhF8H</code></td><td>ADJUSTMENT</td><td>−₹9.54</td></tr><tr><td><code>pay_3I7rJCi8SIlLMD</code></td><td>PAYMENT</td><td>₹5,574.00</td></tr><tr><td><code>pay_5WOZaWjQjCIsyN</code></td><td>PAYMENT</td><td>₹19,712.74</td></tr><tr><td><code>pay_5k8A0htXu4tnTZ</code></td><td>PAYMENT</td><td>₹1,636.51</td></tr><tr><td><code>pay_6Se3thvkbIucDQ</code></td><td>PAYMENT</td><td>₹8,874.68</td></tr><tr><td><code>pay_757I8ZfpxRSWNK</code></td><td>PAYMENT</td><td>₹365.79</td></tr><tr><td><code>pay_8L4V6lORBJFdw8</code></td><td>PAYMENT</td><td>₹242.33</td></tr><tr><td><code>pay_A4TtuLUDWQCNZq</code></td><td>PAYMENT</td><td>₹200.90</td></tr><tr><td><code>pay_CArnWGhwBhsRRL</code></td><td>PAYMENT</td><td>₹5,869.43</td></tr><tr><td><code>pay_Csc91FgWCTm2iD</code></td><td>PAYMENT</td><td>₹2,947.76</td></tr><tr><td><code>pay_EGeKkpOWA1Ox8o</code></td><td>PAYMENT</td><td>₹14,180.19</td></tr><tr><td><code>pay_GtToB7krfHy8iV</code></td><td>PAYMENT</td><td>₹20,880.54</td></tr><tr><td><code>pay_IaS1qpsfzRV0ve</code></td><td>PAYMENT</td><td>₹3,248.22</td></tr><tr><td><code>pay_NWFOCWdnrJi7sC</code></td><td>PAYMENT</td><td>₹6,829.16</td></tr><tr><td><code>pay_NcxxlPJTeJTXni</code></td><td>PAYMENT</td><td>₹3,471.36</td></tr><tr><td><code>pay_Q53xWyyUNvRDKc</code></td><td>PAYMENT</td><td>₹19,526.16</td></tr><tr><td><code>pay_QNAyo5zvIc9Q4C</code></td><td>PAYMENT</td><td>₹15,843.00</td></tr><tr><td><code>pay_R40RVeEty3Mc38</code></td><td>PAYMENT</td><td>₹349.76</td></tr><tr><td><code>pay_SaA0Ayr15m0XFq</code></td><td>PAYMENT</td><td>₹1,949.69</td></tr><tr><td><code>pay_T3KjmXjntlgbIM</code></td><td>PAYMENT</td><td>₹19,505.94</td></tr><tr><td><code>pay_TdtygujA5uqy80</code></td><td>PAYMENT</td><td>₹945.39</td></tr><tr><td><code>pay_UmBL6fsocE7wpZ</code></td><td>PAYMENT</td><td>₹655.63</td></tr><tr><td><code>pay_XSsmRRxTIJunZD</code></td><td>PAYMENT</td><td>₹617.12</td></tr><tr><td><code>pay_bem5PCZif521Zv</code></td><td>PAYMENT</td><td>₹16,173.93</td></tr><tr><td><code>pay_iqlRL0uZsmfAxl</code></td><td>PAYMENT</td><td>₹19,110.85</td></tr></table><p><strong>Σ signed nets:</strong> ₹268,753.00</p></div><div class="card"><h3><code>bank_00017</code></h3><p><strong>Bank credit:</strong> ₹268,753.00</p><p><strong>Δ:</strong> ₹0.00</p><p>NEFT-HJWI1ETHZPPQR2SO-RAZORPAY SOFTWARE PVT LTD-SETL</p></div></div><h2>Deterministic B2 recovery</h2><div class="card"><p><strong>SUFFIX</strong> recovery for <code>setl_Ezf6dJDcGlyMFY</code>; confidence is reporting metadata, not acceptance.</p><p>IMPS/P2A/<mark>071261</mark>/RAZORPAYSOF/UTIB0000123</p><p class="muted">Code-derived span [9, 15); substitution position None.</p></div><h2>Grouping proof: two settlements, one processing date</h2><div class="card"><p><strong>2026-07-24</strong> contains 2 separate batches: <code>setl_Ezf6dJDcGlyMFY,setl_gwP280Jo59JRJO</code>.</p><p>They remain separate because membership is keyed by <code>settlement_id</code>, never inferred from date.</p></div><h2>Exceptions (6)</h2><details><summary>PAID_ORDER_MISSING_FROM_GATEWAY · [&quot;order_000000&quot;]</summary><p>Milaan abstained on order_000000 with reason PAID_ORDER_MISSING_FROM_GATEWAY. No accounting match was posted for the affected scope.</p><p>- Search the gateway by order and payment reference.
+- Verify capture or webhook delivery.</p><p><strong>Next action:</strong> Search the gateway by order and payment reference.</p><pre>{
+  &quot;amount_paise&quot;: 138810,
+  &quot;order_id&quot;: &quot;order_000000&quot;
+}</pre></details><details><summary>DUPLICATE_BANK_LINE · [&quot;bank_00003&quot;,&quot;bank_clone_42&quot;,&quot;setl_jOSX0CoSNm5HMM&quot;]</summary><p>Milaan abstained on bank_00003, bank_clone_42, setl_jOSX0CoSNm5HMM with reason DUPLICATE_BANK_LINE. No accounting match was posted for the affected scope.</p><p>- Compare source row identifiers.
+- De-duplicate the bank export before posting.</p><p><strong>Next action:</strong> Compare source row identifiers.</p><pre>{
+  &quot;bank_line_ids&quot;: [
+    &quot;bank_00003&quot;,
+    &quot;bank_clone_42&quot;
+  ],
+  &quot;settlement_ids&quot;: [
+    &quot;setl_jOSX0CoSNm5HMM&quot;
+  ]
+}</pre></details><details><summary>DUPLICATE_UTR · [&quot;setl_Fk6cmhmyNwwTjH&quot;,&quot;bank_00002&quot;,&quot;bank_dup_utr_42&quot;]</summary><p>Milaan abstained on setl_Fk6cmhmyNwwTjH, bank_00002, bank_dup_utr_42 with reason DUPLICATE_UTR. No accounting match was posted for the affected scope.</p><p>- Confirm which bank line is authoritative.
+- Remove or reverse the duplicate source entry.</p><p><strong>Next action:</strong> Confirm which bank line is authoritative.</p><pre>{
+  &quot;bank_line_ids&quot;: [
+    &quot;bank_00002&quot;,
+    &quot;bank_dup_utr_42&quot;
+  ],
+  &quot;settlement_id&quot;: &quot;setl_Fk6cmhmyNwwTjH&quot;,
+  &quot;utr&quot;: &quot;2092973521xwnpjk&quot;
+}</pre></details><details><summary>AMBIGUOUS_TIE · [&quot;bank_00000&quot;,&quot;bank_00001&quot;,&quot;setl_4V0jo5CDCiKBzR&quot;,&quot;setl_uPHQccb6jE2RlU&quot;]</summary><p>Milaan abstained on bank_00000, bank_00001, setl_4V0jo5CDCiKBzR, setl_uPHQccb6jE2RlU with reason AMBIGUOUS_TIE. No accounting match was posted for the affected scope.</p><p>- Review every listed candidate together.
+- Do not post until one candidate has independent evidence.</p><p><strong>Next action:</strong> Review every listed candidate together.</p><pre>{
+  &quot;candidate_edges&quot;: [
+    [
+      &quot;setl_4V0jo5CDCiKBzR&quot;,
+      &quot;bank_00000&quot;
+    ],
+    [
+      &quot;setl_4V0jo5CDCiKBzR&quot;,
+      &quot;bank_00001&quot;
+    ],
+    [
+      &quot;setl_uPHQccb6jE2RlU&quot;,
+      &quot;bank_00000&quot;
+    ],
+    [
+      &quot;setl_uPHQccb6jE2RlU&quot;,
+      &quot;bank_00001&quot;
+    ]
+  ],
+  &quot;plane&quot;: &quot;B&quot;
+}</pre></details><details><summary>MISSING_IN_BANK · [&quot;setl_l04NvnxPd5yp15&quot;]</summary><p>Milaan abstained on setl_l04NvnxPd5yp15 with reason MISSING_IN_BANK. No accounting match was posted for the affected scope.</p><p>- Check the settlement UTR in the bank portal.
+- Raise the missing credit with the bank.</p><p><strong>Next action:</strong> Check the settlement UTR in the bank portal.</p><pre>{
+  &quot;amount_paise&quot;: 87053212,
+  &quot;processed_date&quot;: &quot;2026-07-28&quot;,
+  &quot;settlement_id&quot;: &quot;setl_l04NvnxPd5yp15&quot;,
+  &quot;utr&quot;: &quot;7311804671rgpa5u&quot;
+}</pre></details><details><summary>UNKNOWN_BANK_CREDIT · [&quot;bank_unknown_42&quot;]</summary><p>Milaan abstained on bank_unknown_42 with reason UNKNOWN_BANK_CREDIT. No accounting match was posted for the affected scope.</p><p>- Trace the bank reference to its remitter.
+- Confirm whether the credit belongs to another account.</p><p><strong>Next action:</strong> Trace the bank reference to its remitter.</p><pre>{
+  &quot;bank_line_id&quot;: &quot;bank_unknown_42&quot;,
+  &quot;credit_paise&quot;: 98765,
+  &quot;narration&quot;: &quot;NEFT-UNRELATED-VENDOR-UNKNOWNREF&quot;,
+  &quot;value_date&quot;: &quot;2026-07-24&quot;
+}</pre></details><h2>Runtime telemetry <span class="muted">(not a functional metric)</span></h2><div class="card"><pre>{
+  &quot;llm_mode&quot;: &quot;mock&quot;,
+  &quot;profile&quot;: &quot;mixed&quot;,
+  &quot;seed&quot;: 42,
+  &quot;stage_ms&quot;: {
+    &quot;ingest_aggregate&quot;: 15,
+    &quot;plane_a&quot;: 2045,
+    &quot;plane_b&quot;: 34
+  },
+  &quot;wall_ms&quot;: 2150
+}</pre></div><footer>Input hashes: {&quot;bank&quot;: &quot;064d95110e53b57148a731925ea4b3e3bb242d24c40764568d1b2dedb1de197f&quot;, &quot;fees&quot;: &quot;32c5a294b09a72d63527b7a0428abb76588c6e0661cc0d44af3aa44c388103cb&quot;, &quot;gateway_recon&quot;: &quot;733ff0055daf4ed600ec7f7a96b70f53c2ce26fa83a8fc640b1cb319263d64f8&quot;, &quot;orders&quot;: &quot;57aaa6fccfae45bd10b8c0d2aec35239714ed3e48390635f423895470093b066&quot;, &quot;timing&quot;: &quot;942b291553c685d44e5ce395fe5f0970f1395148a25e1ea0ce3fd04a0ffe308d&quot;}</footer></main></body>
+</html>

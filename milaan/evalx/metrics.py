@@ -57,7 +57,10 @@ def compute_metrics(conn: sqlite3.Connection, manifest: dict[str, Any]) -> dict[
             "auto_match": _ratio(len(correct), len(expected)),
             "found_count": len(found), "expected_count": len(expected),
             "false_match_count": len(false),
-            "false_match_rate": _ratio(len(false), len(found)),
+            "false_match_rate": {
+                "numerator": len(false), "denominator": len(found),
+                "rate": round(len(false) / max(1, len(found)), 6),
+            },
             "tier_coverage": tiers,
         }
 
