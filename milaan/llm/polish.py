@@ -10,6 +10,7 @@ from dataclasses import replace
 from typing import Any, Iterable
 
 from milaan import db
+from milaan.config import repository_root
 from milaan.llm.live import LiveLLM
 from milaan.llm.mock import MockLLM
 from milaan.models import ExceptionItem
@@ -53,9 +54,13 @@ def content_is_invariant(item: ExceptionItem, narrative: str, guidance: list[str
     if not set(ID_RE.findall(text)).issubset(allowed_ids):
         return False
     mentioned_paise = {int(value) for value in PAISE_RE.findall(text)}
-    mentioned_rupees = {
-        round(float(value.replace(",", "")) * 100) for value in RUPEE_RE.findall(text)
-    }
+    def rupee_to_paise(value: str) -> int:
+        clean = value.replace(",", "")
+        whole, dot, fraction = clean.partition(".")
+        decimal = (fraction + "00")[:2] if dot else "00"
+        return int(whole) * 100 + int(decimal)
+
+    mentioned_rupees = {rupee_to_paise(value) for value in RUPEE_RE.findall(text)}
     return (mentioned_paise | mentioned_rupees).issubset(allowed_amounts)
 
 
@@ -71,10 +76,13 @@ def _log_call(conn: sqlite3.Connection, run_id: str, purpose: str, call: Any) ->
 def polish_exceptions(conn: sqlite3.Connection, run_id: str, items: list[ExceptionItem],
                       mode: str) -> list[ExceptionItem]:
     client = LiveLLM() if mode == "live" else MockLLM()
+    instructions = (repository_root() / "milaan" / "llm" / "prompts" /
+                    "exception_narrate.txt").read_text(encoding="utf-8")
     polished: list[ExceptionItem] = []
     for item in items:
         canonical_guidance = [line.removeprefix("- ") for line in item.guidance.splitlines() if line]
         prompt = json.dumps({
+            "instructions": instructions,
             "reason_code": item.reason, "scope_ids": item.scope_ids,
             "evidence": item.evidence, "canonical_narrative": item.narrative,
             "canonical_guidance": canonical_guidance,
