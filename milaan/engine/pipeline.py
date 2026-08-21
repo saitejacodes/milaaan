@@ -17,6 +17,7 @@ from milaan.engine.plane_b import match_b0_b1
 from milaan.engine.recovery import apply_recovery, collect_recovery_hits, deferred_bank_ids
 from milaan.exceptions.actions import with_canonical_language
 from milaan.exceptions.triage import triage_plane_b
+from milaan.llm.polish import polish_exceptions
 from milaan.ingest.aggregate import aggregate_batches
 from milaan.ingest.normalize import normalize_inputs
 
@@ -112,6 +113,7 @@ def run_pipeline(data_dir: Path, database_path: Path, llm_mode: str = "mock") ->
             + residual
         )
         all_exceptions = [with_canonical_language(item) for item in all_exceptions]
+        all_exceptions = polish_exceptions(conn, run_id, all_exceptions, llm_mode)
         for item in all_exceptions:
             db.insert_exception(conn, run_id, item)
         event(conn, run_id, "run_completed", {
