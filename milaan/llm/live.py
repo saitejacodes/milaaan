@@ -1,6 +1,7 @@
-"""Provider adapters used only to polish exception language.
+"""Provider adapters for bounded tool selection and strict language preservation.
 
-Matching, exception classification, and metrics never call this module. The
+Matching, exception classification, financial answers, and metrics never depend
+on provider prose. The
 supported HTTP contracts are OpenAI-compatible Chat Completions, Anthropic
 Messages, and Google Gemini generateContent. Ollama is a configured shortcut
 for its OpenAI-compatible endpoint.
@@ -21,8 +22,8 @@ from milaan.llm.cache import ResponseCache
 from milaan.llm.client import LLMCall
 
 
-PROMPT_VERSION = "3.1"
-SYSTEM_MESSAGE = "Return JSON only. You may rewrite language, never facts."
+PROMPT_VERSION = "4.0"
+SYSTEM_MESSAGE = "Return JSON only. Never make or alter financial facts, matches, or postings."
 
 _PROVIDER_ALIASES = {
     "openai-compatible": "openai-compatible",

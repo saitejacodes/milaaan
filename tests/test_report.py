@@ -20,7 +20,10 @@ class ReportTests(unittest.TestCase):
             out = run / "report.html"
             render_report(run, run / "m.db", out)
             text = out.read_text()
-            self.assertIn("Functional results", text)
+            self.assertIn("Measured correctness", text)
+            self.assertIn("Honest workload coverage", text)
+            self.assertIn("Cash position", text)
+            self.assertIn("Ask Milaan", text)
             self.assertIn("Deterministic B2 recovery", text)
             self.assertIn("two settlements, one processing date", text)
             self.assertNotIn("<script src=", text)

@@ -125,9 +125,13 @@ def run_pipeline(data_dir: Path, database_path: Path, llm_mode: str = "mock") ->
     finally:
         conn.close()
 
+    wall_ms = round((time.perf_counter() - started) * 1000)
+    source_records = len(ingested.orders) + len(ingested.txns) + len(ingested.bank) + len(ingested.quarantined)
     telemetry = {
         "seed": seed, "profile": profile, "llm_mode": llm_mode,
-        "wall_ms": round((time.perf_counter() - started) * 1000),
+        "wall_ms": wall_ms,
+        "source_records": source_records,
+        "source_records_per_second": round(source_records / max(wall_ms / 1000, 0.001), 2),
         "stage_ms": stage_ms,
     }
     (data_dir / "runtime_telemetry.json").write_text(

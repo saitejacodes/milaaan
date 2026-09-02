@@ -1,4 +1,4 @@
-.PHONY: test gen run run-live eval report demo demo-live ci
+.PHONY: test gen run run-live eval report ask agent-eval benchmark dashboard preview demo demo-live ci
 
 PYTHON ?= python
 CLI ?= $(PYTHON) -m milaan.cli
@@ -28,7 +28,22 @@ eval:
 report:
 	$(CLI) report --run $(DATA) --db $(DATA)/milaan.db --out $(DATA)/report.html
 
-demo: gen run eval report
+ask:
+	$(CLI) ask --run $(DATA) --db $(DATA)/milaan.db --question "What is our cash position?" --llm mock
+
+agent-eval:
+	$(CLI) agent-eval --run $(DATA) --db $(DATA)/milaan.db --out $(DATA)/agent_metrics.json --llm mock
+
+benchmark:
+	$(CLI) benchmark --out data/benchmark.json
+
+dashboard:
+	streamlit run milaan/dashboard.py -- --run $(DATA) --db $(DATA)/milaan.db
+
+preview:
+	$(PYTHON) scripts/render_report_preview.py
+
+demo: gen run eval agent-eval report
 demo-live: gen run-live eval report
 
 ci: test
@@ -41,8 +56,14 @@ ci: test
 	  $(CLI) run --data $$T/m$$s --db $$T/m$$s/m.db --llm mock; \
 	  $(CLI) eval --run $$T/m$$s --db $$T/m$$s/m.db --out-dir $$T/m$$s --gate mixed; \
 	done; \
+	for s in 1 2 3; do \
+	  $(CLI) gen --records 1200 --seed $$s --profile hard --out $$T/h$$s; \
+	  $(CLI) run --data $$T/h$$s --db $$T/h$$s/m.db --llm mock; \
+	  $(CLI) eval --run $$T/h$$s --db $$T/h$$s/m.db --out-dir $$T/h$$s --gate hard; \
+	done; \
 	$(CLI) run --data $$T/m1 --db $$T/m1/m.db --llm mock; \
 	$(CLI) eval --run $$T/m1 --db $$T/m1/m.db --out-dir $$T/m1 --gate mixed; \
+	$(CLI) agent-eval --run $$T/m1 --db $$T/m1/m.db --out $$T/m1/agent_metrics.json --llm mock; \
 	$(CLI) report --run $$T/m1 --db $$T/m1/m.db --out $$T/m1/report.html
 	@if $(PYTHON) -c "import pytest" >/dev/null 2>&1; then \
 	  $(PYTHON) -m pytest -q tests/test_golden_metrics.py tests/test_llm_mode_invariance.py; \
