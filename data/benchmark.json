@@ -1,0 +1,52 @@
+{
+  "measurement": "end-to-end reconciliation wall time; generation and evaluation excluded",
+  "profile": "mixed",
+  "results": [
+    {
+      "max_source_records_per_second": 10166.67,
+      "median_source_records": 125,
+      "median_source_records_per_second": 9769.23,
+      "min_source_records_per_second": 9615.38,
+      "orders": 50,
+      "repetitions": 3
+    },
+    {
+      "max_source_records_per_second": 16730.77,
+      "median_source_records": 435,
+      "median_source_records_per_second": 16148.15,
+      "min_source_records_per_second": 16074.07,
+      "orders": 200,
+      "repetitions": 3
+    },
+    {
+      "max_source_records_per_second": 20754.24,
+      "median_source_records": 2464,
+      "median_source_records_per_second": 20363.64,
+      "min_source_records_per_second": 18832.06,
+      "orders": 1200,
+      "repetitions": 3
+    },
+    {
+      "max_source_records_per_second": 23847.42,
+      "median_source_records": 10159,
+      "median_source_records_per_second": 22959.09,
+      "min_source_records_per_second": 21004.13,
+      "orders": 5000,
+      "repetitions": 3
+    },
+    {
+      "max_source_records_per_second": 21865.01,
+      "median_source_records": 20291,
+      "median_source_records_per_second": 20875.51,
+      "min_source_records_per_second": 20834.87,
+      "orders": 10000,
+      "repetitions": 3
+    }
+  ],
+  "schema_version": "1.0.0",
+  "seed_sequence": [
+    42,
+    43,
+    44
+  ]
+}
