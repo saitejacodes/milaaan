@@ -95,7 +95,10 @@ class ProviderAdapterTests(unittest.TestCase):
         self.assertEqual(endpoint, "https://api.anthropic.com/v1/messages")
         self.assertEqual(kwargs["headers"]["x-api-key"], "secret")
         self.assertEqual(kwargs["headers"]["anthropic-version"], "2023-06-01")
-        self.assertEqual(kwargs["json"]["system"], "Return JSON only. You may rewrite language, never facts.")
+        self.assertEqual(
+            kwargs["json"]["system"],
+            "Return JSON only. Never make or alter financial facts, matches, or postings.",
+        )
         self.assertEqual(client.last_call.tokens_in, 13)
         self.assertEqual(client.last_call.tokens_out, 9)
 

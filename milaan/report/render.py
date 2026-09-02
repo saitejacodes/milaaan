@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 from string import Template
 
+from milaan.agent.tools import FinanceTools
 from milaan.config import repository_root
 from milaan.db import connect
 
@@ -28,6 +29,13 @@ def _ratio_card(label: str, metric: dict) -> str:
     )
 
 
+def _money_card(label: str, paise: int, note: str = "") -> str:
+    return (
+        f'<div class="card"><div class="muted">{_e(label)}</div>'
+        f'<div class="value">{_money(paise)}</div><div>{_e(note)}</div></div>'
+    )
+
+
 def _highlight(narration: str, start: int, end: int) -> str:
     return _e(narration[:start]) + "<mark>" + _e(narration[start:end]) + "</mark>" + _e(narration[end:])
 
@@ -36,6 +44,12 @@ def render_report(run_dir: Path, database_path: Path, out: Path) -> str:
     metrics = json.loads((run_dir / "functional_metrics.json").read_text(encoding="utf-8"))
     telemetry_path = run_dir / "runtime_telemetry.json"
     telemetry = json.loads(telemetry_path.read_text(encoding="utf-8")) if telemetry_path.exists() else {}
+    finance_tools = FinanceTools(run_dir, database_path)
+    verified_questions = [
+        ("What is our cash position?", finance_tools.get_cash_position()),
+        ("What is the honest match coverage?", finance_tools.get_match_metrics()),
+        ("Which settlement exposure is blocked?", finance_tools.get_blocked_exposure()),
+    ]
     conn = connect(database_path)
     try:
         run = conn.execute("SELECT * FROM runs").fetchone()
@@ -72,16 +86,46 @@ def render_report(run_dir: Path, database_path: Path, out: Path) -> str:
             '<h1>Milaan reconciliation report</h1>',
             f'<p class="muted">Seed {_e(metrics["seed"])} · profile {_e(metrics["profile"])} · '
             f'generator {_e(metrics["generator_version"])} · run {_e(run["run_id"])}</p>',
-            '<p><strong>The books are code. The model only explains them.</strong> '
+            '<p><strong>Deterministic code owns every rupee. AI investigates verified evidence.</strong> '
             'All functional results below come from deterministic rules and database constraints.</p>',
-            '<h2>Functional results</h2><div class="grid">',
-            _ratio_card("Plane A auto-match", metrics["planes"]["A"]["auto_match"]),
-            _ratio_card("Plane B auto-match", metrics["planes"]["B"]["auto_match"]),
+            '<h2>Measured correctness</h2><div class="grid">',
+            _ratio_card("Plane A expected-match recall", metrics["planes"]["A"]["expected_match_recall"]),
+            _ratio_card("Plane A match precision", metrics["planes"]["A"]["match_precision"]),
+            _ratio_card("Plane B expected-match recall", metrics["planes"]["B"]["expected_match_recall"]),
+            _ratio_card("Plane B match precision", metrics["planes"]["B"]["match_precision"]),
             _ratio_card("Exception recall", metrics["exceptions"]["recall"]),
             _ratio_card("Exception precision", metrics["exceptions"]["precision"]),
-            _ratio_card("Completeness", metrics["completeness"]),
+            _ratio_card("Source-record conservation", metrics["source_record_conservation"]),
             f'<div class="card"><div class="muted">False matches</div><div class="value">{metrics["false_match_count"]}</div>'
             '<div>on this named synthetic benchmark</div></div></div>',
+            '<p class="muted">Expected-match recall measures labelled benchmark accuracy. '
+            'Workload coverage below measures how much of the complete operational workload was auto-resolved.</p>',
+            '<h2>Honest workload coverage</h2><div class="grid">',
+            _ratio_card("Eligible orders auto-matched", metrics["workload_coverage"]["plane_a_orders"]),
+            _ratio_card("Gateway payments auto-matched", metrics["workload_coverage"]["plane_a_payments"]),
+            _ratio_card("Settlement batches banked", metrics["workload_coverage"]["plane_b_settlement_batches"]),
+            _ratio_card("Bank lines explained by a match", metrics["workload_coverage"]["plane_b_bank_lines"]),
+            '</div>',
+            '<h2>Cash position</h2><div class="grid">',
+            _money_card("Banked", metrics["cash_position"]["banked_paise"], "verified batch-to-bank matches"),
+            _money_card("Expected but unbanked", metrics["cash_position"]["expected_unbanked_paise"], "missing bank evidence"),
+            _money_card("Blocked settlements", metrics["cash_position"]["blocked_settlement_paise"], "requires finance review"),
+            _money_card("Unexplained bank credits", metrics["cash_position"]["unexplained_bank_credit_paise"], "not auto-posted"),
+            _money_card("Gross evidence under attention", metrics["cash_position"]["gross_attention_paise"], "not a net loss estimate"),
+            '</div>',
+            '<p class="muted">Cash buckets are code-derived from matched and unresolved records. '
+            'Gross evidence under attention may contain both sides of an ambiguous item and must not be read as financial loss.</p>',
+            '<h2>Control integrity</h2><div class="grid">',
+            f'<div class="card"><div class="muted">Input hashes</div><div class="value">'
+            f'{"PASS" if metrics["input_integrity"]["all_match"] else "FAIL"}</div>'
+            '<div>manifest is bound to evaluated CSV files</div></div>',
+            f'<div class="card"><div class="muted">Amount conservation</div><div class="value">'
+            f'{"PASS" if metrics["amount_conservation"]["balanced"] else "FAIL"}</div>'
+            f'<div>delta {_money(metrics["amount_conservation"]["delta_paise"])}</div></div>',
+            f'<div class="card"><div class="muted">Throughput</div><div class="value">'
+            f'{float(telemetry.get("source_records_per_second", 0)):,.0f}/s</div>'
+            f'<div>{int(telemetry.get("source_records", 0)):,} source records · '
+            f'{int(telemetry.get("wall_ms", 0)):,} ms</div></div></div>',
             '<h2>Tier coverage</h2><table><thead><tr><th>Plane</th><th>Tier</th><th>Matches</th></tr></thead><tbody>',
         ]
         parts.extend(f'<tr><td>{_e(row["plane"])}</td><td>{_e(row["tier"])}</td><td>{row["n"]}</td></tr>'
@@ -125,6 +169,20 @@ def render_report(run_dir: Path, database_path: Path, out: Path) -> str:
                 f'<p><strong>{_e(multi["day"])}</strong> contains {multi["n"]} separate batches: '
                 f'<code>{_e(multi["ids"])}</code>.</p>',
                 '<p>They remain separate because membership is keyed by <code>settlement_id</code>, never inferred from date.</p></div>',
+            ])
+
+        parts.extend([
+            '<h2>Ask Milaan · bounded finance investigation</h2>',
+            '<p class="muted">In live mode, the model may select one allow-listed read-only tool. '
+            'Every amount and answer below is produced by deterministic code; model prose cannot create a fact or posting.</p>',
+        ])
+        for question, result in verified_questions:
+            evidence = ", ".join(str(value) for value in result["evidence_ids"][:8])
+            parts.extend([
+                '<div class="card">',
+                f'<h3>{_e(question)}</h3><p>{_e(result["answer"])}</p>',
+                f'<p class="muted">Tool: <code>{_e(result["tool"])}</code> · Evidence: {_e(evidence)}</p>',
+                '</div>',
             ])
 
         parts.append(f'<h2>Exceptions ({len(exceptions)})</h2>')
