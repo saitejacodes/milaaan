@@ -36,7 +36,7 @@ class AggregateTests(unittest.TestCase):
         ingested = IngestResult([], [txn("pay_1", "UTR123")], [], [], {"setl_1"}, [])
         result = aggregate_batches(ingested)
         self.assertTrue(result.batches[0].tainted)
-        self.assertEqual(result.exceptions[0].reason, "UNSUPPORTED_MEMBER_IN_BATCH")
+        self.assertEqual(result.exceptions[0].reason, "TAINTED_SETTLEMENT")
 
 
 if __name__ == "__main__":

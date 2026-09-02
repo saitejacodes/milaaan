@@ -5,7 +5,7 @@ from __future__ import annotations
 from itertools import combinations
 
 from milaan.engine.plane_b import PlaneBState, normalize_identifier
-from milaan.generator.calendar import business_gap
+from milaan.generator.calendar import forward_business_gap
 from milaan.models import BankLine, ExceptionItem, SettlementBatch
 
 
@@ -25,7 +25,8 @@ def triage_plane_b(batches: list[SettlementBatch], bank: list[BankLine], state: 
     consumed_bank: set[str] = set()
     for line in remaining_bank:
         candidates = [b for b in remaining_batches
-                      if business_gap(b.processed_at.date(), line.value_date) <= window_b_bd]
+                      if (gap := forward_business_gap(b.processed_at.date(), line.value_date))
+                      is not None and gap <= window_b_bd]
         pairs = [(a, b) for a, b in combinations(candidates, 2)
                  if a.amount_paise + b.amount_paise == line.credit_paise]
         if len(pairs) == 1:
@@ -50,7 +51,8 @@ def triage_plane_b(batches: list[SettlementBatch], bank: list[BankLine], state: 
         needle = normalize_identifier(batch.settlement_utr)
         utr_lines = [line for line in remaining_bank if needle in normalize_identifier(line.narration)]
         in_window = [line for line in utr_lines
-                     if business_gap(batch.processed_at.date(), line.value_date) <= window_b_bd]
+                     if (gap := forward_business_gap(batch.processed_at.date(), line.value_date))
+                     is not None and gap <= window_b_bd]
         if len(in_window) == 1 and in_window[0].credit_paise != batch.amount_paise:
             line = in_window[0]
             exceptions.append(ExceptionItem(

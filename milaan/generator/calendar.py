@@ -40,3 +40,16 @@ def business_gap(first: date, second: date) -> int:
         if is_business_day(current):
             gap += 1
     return gap
+
+
+def forward_business_gap(first: date, second: date) -> int | None:
+    """Return a forward-only business-day gap, or ``None`` for time reversal.
+
+    Reconciliation chronology is directional: a payment cannot precede its
+    order and a bank credit cannot precede settlement processing.  Keeping
+    this separate from :func:`business_gap` prevents an absolute date distance
+    from accidentally accepting a reversed event sequence.
+    """
+    if second < first:
+        return None
+    return business_gap(first, second)

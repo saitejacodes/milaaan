@@ -36,6 +36,12 @@ class PlaneBTests(unittest.TestCase):
         self.assertFalse(result.decisions)
         self.assertEqual(result.exceptions[0].reason, "DUPLICATE_UTR")
 
+    def test_bank_credit_before_settlement_is_rejected(self) -> None:
+        early = BankLine("b1", date(2026, 8, 1), date(2026, 8, 1),
+                         "NEFT-ABC123456789-RZP", 100, 0, 100, "ref", "b1")
+        result = match_b0_b1([batch("s1", "ABC123456789", 100)], [early], 3, 100)
+        self.assertFalse(result.decisions)
+
 
 if __name__ == "__main__":
     unittest.main()
