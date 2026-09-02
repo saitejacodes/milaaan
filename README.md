@@ -1,19 +1,28 @@
 # Milaan — AI Finance Controller
 
-[![CI: make ci](https://img.shields.io/badge/CI-make%20ci-167454)](#verify-the-build)
+[![CI](https://github.com/saitejacodes/milaaan/actions/workflows/ci.yml/badge.svg)](https://github.com/saitejacodes/milaaan/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-b18435)](pyproject.toml)
 [![Offline first](https://img.shields.io/badge/demo-no%20API%20key-6f42c1)](#quick-start-no-api-key)
 
 Milaan is a deterministic three-way settlement controller for **Track 04: AI
 Finance Controller**. It closes one finance-operations loop across merchant
 orders, gateway settlement-reconciliation rows, and bank credits. It proves the
-matches it can defend, reports measured accuracy, and produces an evidence-rich
-exception for every item it cannot resolve.
+matches it can defend, reports both workload coverage and labelled accuracy,
+computes the cash position, and produces an evidence-rich exception for every
+item it cannot resolve. A bounded AI agent investigates those verified facts
+through read-only tools; it cannot create a match or accounting posting.
 
 The included named benchmark contains **1,200 synthetic orders**, well above the
 track's 50-record minimum. The complete demo runs locally without an API key.
 
-> **The books are code. The model only explains them.**
+> **Deterministic code owns every rupee. AI investigates verified evidence.**
+
+[Open the verified report](data/samples/run42/report.html) ·
+[Read the architecture](docs/ARCHITECTURE.md) ·
+[Follow the five-minute demo](docs/SUBMISSION_GUIDE.md) ·
+[Inspect the build evidence](docs/BUILD_LOG.md)
+
+![Milaan verified report](data/samples/run42/report_preview.png)
 
 ## Why this fits Track 04
 
@@ -21,10 +30,12 @@ track's 50-record minimum. The complete demo runs locally without an API key.
 |---|---|
 | Close one finance-ops loop | Order → gateway transaction → settlement batch → bank credit |
 | 50+ synthetic records | Reproducible 1,200-order benchmark with disjoint difficulty injections |
-| Report match rate | Plane A and Plane B numerators, denominators, and exact rates |
+| Report match rate | Honest workload coverage plus separate precision and recall |
 | Report unresolved exceptions | Stable reason codes, candidates, evidence, and next action |
-| Throughput plus measured accuracy | One-command run, golden metrics, runtime telemetry, and CI gates |
+| Run the cash position | Banked, expected-unbanked, blocked, and unexplained cash buckets |
+| Throughput plus measured accuracy | Five-size benchmark, golden metrics, runtime telemetry, and CI gates |
 | Honest exception list | Ambiguity and unsupported rows cause abstention, never a guessed match |
+| Meaningful AI judgment | Model selects only allow-listed investigation tools; code returns the facts |
 
 Milaan follows the example direction **multi-source reconciliation**. It does not
 claim to be a general ledger, cash forecaster, tax engine, or production payment
@@ -40,10 +51,11 @@ flowchart TD
   D --> E[Settlement grouping]
   E --> F[Plane A and B rules]
   F --> G[(SQLite evidence ledger)]
-  G --> H[Metrics and exceptions]
-  H --> I[Optional LLM wording]
-  H --> J[HTML report]
-  I --> J
+  G --> H[Metrics, cash and exceptions]
+  H --> I[Read-only finance tools]
+  I --> J[Bounded AI router]
+  H --> K[Report and dashboard]
+  J --> K
 ```
 
 - **Plane A** matches each payment transaction to a merchant order using order
@@ -52,11 +64,14 @@ flowchart TD
   UTR, mutually unique amount/date evidence, then bounded deterministic
   FULL/SUFFIX/one-confusable recovery.
 - **Database exclusivity** prevents any entity from being consumed twice.
-- **Taint-and-abstain** blocks a whole batch when it contains an unsupported
-  member; partial sums are never silently accepted.
-- **The optional LLM** may rewrite only the human-language narrative and
-  guidance. It cannot create a match or change an identifier, amount, exception
-  code, or metric. Unsafe output is rejected and the canonical template remains.
+- **Taint-and-abstain** blocks a whole batch when any member is rejected,
+  including fee, schema, type, and duplicate failures. Partial sums cannot match.
+- **Directional chronology** rejects payments before orders and bank credits
+  before settlement processing.
+- **Record conservation** proves every source row finishes matched, excepted,
+  quarantined, or deliberately ignored with a named reason.
+- **The optional LLM** selects one allow-listed read-only investigation tool.
+  Code computes the answer and evidence; unsupported or write requests are refused.
 
 ## Quick start: no API key
 
@@ -90,6 +105,20 @@ Open `data/run42/report.html` in a browser. It is self-contained and makes no
 network request. A verified prebuilt example is also included at
 `data/samples/run42/report.html`.
 
+Ask the bounded finance agent:
+
+```bash
+python -m milaan.cli ask --run data/run42 --db data/run42/milaan.db \
+  --question "Why is cash blocked?" --llm mock
+```
+
+Optional operator console:
+
+```bash
+python -m pip install -e '.[dashboard]'
+make dashboard
+```
+
 Useful ways to open it:
 
 ```bash
@@ -107,6 +136,7 @@ start data\run42\report.html     # Windows
 python -m milaan.cli gen --records 1200 --seed 42 --profile mixed --out data/run42
 python -m milaan.cli run --data data/run42 --db data/run42/milaan.db --llm mock
 python -m milaan.cli eval --run data/run42 --db data/run42/milaan.db --out-dir data/run42 --gate mixed
+python -m milaan.cli agent-eval --run data/run42 --db data/run42/milaan.db --out data/run42/agent_metrics.json --llm mock
 python -m milaan.cli report --run data/run42 --db data/run42/milaan.db --out data/run42/report.html
 ```
 
@@ -114,16 +144,19 @@ The stages are deliberately separate:
 
 1. `gen` writes deterministic source files and private benchmark truth.
 2. `run` reconciles the three sources without reading that truth.
-3. `eval` compares results with truth and applies the named benchmark gate.
-4. `report` renders a printable, self-contained HTML report.
+3. `eval` verifies pairs, amounts, member sets, hashes, precision, and conservation.
+4. `agent-eval` measures allow-listed routing and grounded/refused answers.
+5. `report` renders a printable, self-contained HTML report.
 
 Use `--llm mock` for the canonical offline templates. This is the default,
 recommended judging path.
 
 ## Bring your own LLM (optional)
 
-Another user can connect their own key and model for exception-language polish.
-Milaan supports the three major HTTP contract families and a local shortcut:
+Another user can connect their own key and model for allow-listed finance-tool
+selection. The provider never receives authority to match, post, mutate a ledger,
+or compose the final financial facts. Milaan supports the three major HTTP
+contract families and a local shortcut:
 
 | `MILAAN_LLM_PROVIDER` | API contract | API key | Base URL |
 |---|---|---|---|
@@ -193,10 +226,12 @@ MILAAN_LLM_API_KEY=
 MILAAN_LLM_BASE_URL=
 ```
 
-### 3. Run with live wording
+### 3. Run and ask with live routing
 
 ```bash
 make demo-live
+python -m milaan.cli ask --run data/run42 --db data/run42/milaan.db \
+  --question "Can I close the books?" --llm live
 ```
 
 Or without Make:
@@ -228,10 +263,10 @@ cache file if you want to force new language calls.
 | `MILAAN_CACHE_PATH` | `data/.llm_cache.sqlite` | Persistent response cache |
 | `MILAAN_ENV_FILE` | repository `.env` | Optional path to a different environment file |
 
-If configuration, authentication, networking, JSON parsing, or the content
-firewall fails, Milaan records an audit event and uses its canonical prose. The
-reconciliation run still completes. Functional results must remain
-byte-identical between `--llm mock` and `--llm live`.
+If configuration, authentication, networking, JSON parsing, tool validation, or
+the exception-language firewall fails, Milaan records an audit event and fails
+closed or uses deterministic routing. The reconciliation run still completes.
+Functional results remain byte-identical between `--llm mock` and `--llm live`.
 
 Official API references: [OpenAI-compatible behavior in
 Ollama](https://docs.ollama.com/api/openai-compatibility), [Anthropic Messages
@@ -257,7 +292,11 @@ The pipeline adds:
 | `milaan.db` | Evidence ledger, matches, members, exceptions, audit events, and LLM telemetry |
 | `functional_metrics.json` | Deterministic scored results with real denominators and input hashes |
 | `runtime_telemetry.json` | Wall-clock and stage timing; never treated as a functional metric |
+| `agent_metrics.json` | Named tool-selection and grounded/refusal evaluation |
 | `report.html` | Self-contained reviewer-facing report |
+
+Repository-level `data/benchmark.json` records a reproducible five-size,
+three-repetition throughput sweep.
 
 The current submission is benchmark software with an exact CSV contract. It
 does not directly ingest arbitrary bank or gateway exports. A real deployment
@@ -267,16 +306,54 @@ benchmark accuracy claims do not apply to production data.
 
 ## Verification
 
-Named benchmark: **seed 42 · mixed profile · generator 1.2.1 · 1,200 orders**.
+Named benchmark: **seed 42 · mixed profile · generator 1.3.0 · 1,200 orders ·
+2,467 physical source records**.
 
-| Functional result | Numerator / denominator | Result |
+| Correctness result | Numerator / denominator | Result |
 |---|---:|---:|
-| Plane A correct auto-matches | 1,154 / 1,154 | 100.00% |
-| Plane B correct auto-matches | 21 / 21 | 100.00% |
+| Plane A expected-match recall | 1,154 / 1,154 | 100.00% |
+| Plane A match precision | 1,154 / 1,154 | 100.00% |
+| Plane B expected-match recall | 21 / 21 | 100.00% |
+| Plane B match precision | 21 / 21 | 100.00% |
 | Expected exception recall | 6 / 6 | 100.00% |
 | Exception precision | 6 / 6 | 100.00% |
-| Entity completeness | 2,363 / 2,363 | 100.00% |
+| Source-record conservation | 2,467 / 2,467 | 100.00% |
 | False matches | 0 / 1,175 found matches | 0 |
+
+| Operational workload | Auto-resolved | Coverage |
+|---|---:|---:|
+| Eligible orders | 1,154 / 1,155 | 99.91% |
+| Gateway payments | 1,154 / 1,154 | 100.00% |
+| Settlement batches | 21 / 26 | 80.77% |
+| Bank lines | 21 / 28 | 75.00% |
+
+Lower operational coverage is deliberate: unresolved ambiguity becomes an
+exception instead of a guessed match. Expected-pair accuracy and workload
+coverage are different measurements and are never presented as one number.
+
+| Cash position | Amount |
+|---|---:|
+| Verified banked cash | ₹6,650,191.65 |
+| Expected but unbanked | ₹870,532.12 |
+| Blocked settlement evidence | ₹1,262,028.48 |
+| Unexplained bank credits | ₹1,898,941.06 |
+
+The offline named agent gate reports **50/50 correct tool selections and 50/50
+grounded-or-refused outputs**. This measures bounded routing—not open-ended
+financial reasoning. A real-provider result must be reported separately when run.
+
+### Throughput sweep
+
+Median end-to-end reconciliation rate from three mixed-profile runs in the
+verification environment; generation and evaluation are excluded:
+
+| Orders | Median source records | Median source records/s |
+|---:|---:|---:|
+| 50 | 125 | 9,769 |
+| 200 | 435 | 16,148 |
+| 1,200 | 2,464 | 20,364 |
+| 5,000 | 10,159 | 22,959 |
+| 10,000 | 20,291 | 20,876 |
 
 These numbers are reproduced by `make demo` and recorded with input hashes in
 `functional_metrics.json` and `docs/BUILD_LOG.md`. The precise claim is **zero
@@ -287,7 +364,8 @@ matches on real payment data.
 
 ```bash
 make test   # unit, adversarial, provider-contract, golden, and end-to-end tests
-make ci     # tests + clean gate + three mixed seeds + full second demo cycle
+make ci     # tests + clean gate + three mixed + three hard seeds + second cycle
+make benchmark
 ```
 
 Without Make:
@@ -297,22 +375,24 @@ python -m unittest discover -s tests -v
 ```
 
 The provider tests use local fake responses and make no paid API calls. A real
-key is intentionally not included. The CI invariant test verifies that enabling
-the language layer cannot alter `functional_metrics.json`.
+key is intentionally not included. CI runs Python 3.11, 3.12, and 3.13 and
+verifies that enabling the language layer cannot alter `functional_metrics.json`.
 
 ## Evidence and failure behavior
 
 Every accepted match stores its rule, candidates, amount delta, business-day
 gap, confidence metadata, and database members. Every abstention stores the
-relevant candidates, a stable reason code, canonical action, and optional
-polished prose. The report demonstrates:
+relevant candidates, a stable reason code, canonical action, and immutable
+canonical status text. The report demonstrates:
 
 - signed transaction nets whose sum proves a settlement batch amount;
 - the matching bank credit and amount delta;
 - exact character offsets for deterministic fuzzy UTR recovery;
 - multiple settlements sharing a date while remaining separate batches;
 - functional metrics visibly separated from runtime telemetry;
-- ambiguity that causes a deliberate abstention.
+- ambiguity that causes a deliberate abstention;
+- exact input-hash binding, amount conservation, and source-record conservation;
+- code-derived cash position and evidence-backed finance-agent answers.
 
 ## Troubleshooting
 
@@ -326,8 +406,9 @@ polished prose. The report demonstrates:
 | Provider returns HTTP 404 | Use the API root, not a dashboard URL; check `MILAAN_LLM_BASE_URL` |
 | Compatible server rejects `response_format` | Set `MILAAN_LLM_JSON_MODE=prompt` |
 | Ollama connection fails | Start Ollama, install the named model, and confirm port 11434 is reachable |
-| Live prose does not change | Inspect audit events; the provider may be unavailable or its output failed the safety firewall |
-| Browser shows raw files instead of the app | Open `report.html`; Milaan is a CLI plus generated report, not a hosted web server |
+| Live question uses deterministic fallback | Inspect audit events; provider configuration or tool selection failed validation |
+| Dashboard command cannot find Streamlit | Install `python -m pip install -e '.[dashboard]'` |
+| Browser shows raw files instead of the app | Open `report.html`, or install the dashboard extra and run `make dashboard` |
 
 ## Deliberate limits
 
@@ -340,8 +421,10 @@ polished prose. The report demonstrates:
   or shipped.
 - UTR recovery accepts only full identifiers, unique suffixes of at least six
   characters, and one fixed confusable substitution.
-- LLM support is language-only and provider-contract based; it does not make
-  proprietary API shapes interchangeable.
+- LLM support is limited to allow-listed read-only tool selection and strict
+  canonical exception text; it does not make proprietary API shapes interchangeable.
+- The offline 50-question agent gate measures deterministic routing. Do not
+  present it as a real-model benchmark.
 
 ## Repository guide
 
@@ -349,9 +432,11 @@ polished prose. The report demonstrates:
 - `milaan/ingest/` — explicit parsing, quarantine, taint, aggregation
 - `milaan/engine/` — Plane A, Plane B, bounded recovery, pipeline
 - `milaan/exceptions/` — stable codes, precedence, canonical actions
-- `milaan/llm/` — provider adapters, language-only client, cache, firewall
+- `milaan/llm/` — provider contracts, cache, and strict output firewall
+- `milaan/agent/` — allow-listed finance tools, router, and named evaluation
 - `milaan/evalx/` — the only code allowed to read synthetic ground truth
 - `milaan/report/` — self-contained printable HTML report
+- `milaan/dashboard.py` — optional operator console
 - `tests/` — unit, adversarial, contract, golden, and end-to-end gates
 - `docs/` — architecture, decisions, build log, review trail, submission guide
 
