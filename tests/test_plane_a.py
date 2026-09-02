@@ -36,6 +36,27 @@ class PlaneATests(unittest.TestCase):
         result = match_plane_a([order("o1", 100)], [], 1)
         self.assertEqual(result.exceptions[0].reason, "PAID_ORDER_MISSING_FROM_GATEWAY")
 
+    def test_two_identity_claims_are_blocked_not_sorted_away(self) -> None:
+        result = match_plane_a(
+            [order("o1", 100)],
+            [payment("p1", 100, "o1"), payment("p2", 100, "o1")],
+            1,
+        )
+        self.assertFalse(result.decisions)
+        self.assertEqual([item.reason for item in result.exceptions], ["IDENTITY_CONFLICT"])
+        self.assertEqual(set(result.exceptions[0].scope_ids), {"o1", "p1", "p2"})
+
+    def test_payment_before_order_is_never_accepted_by_direct_id(self) -> None:
+        early = replace(payment("p1", 100, "o1"), captured_at=datetime(2026, 7, 1))
+        result = match_plane_a([order("o1", 100)], [early], 30)
+        self.assertFalse(result.decisions)
+        self.assertEqual(result.exceptions[0].reason, "DATE_OUT_OF_WINDOW")
+
+    def test_unmatched_gateway_payment_is_explicit(self) -> None:
+        result = match_plane_a([], [payment("p1", 100, "missing-order")], 1)
+        self.assertFalse(result.decisions)
+        self.assertEqual(result.exceptions[0].reason, "UNMATCHED_GATEWAY_PAYMENT")
+
 
 if __name__ == "__main__":
     unittest.main()

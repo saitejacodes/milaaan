@@ -30,12 +30,22 @@ def aggregate_batches(ingested: IngestResult) -> AggregateResult:
         processed_values = {m.settlement_processed_at for m in members if m.settlement_processed_at}
         if settlement_id in ingested.tainted_settlement_ids:
             blocked.add(settlement_id)
+            rejected_rows = [q for q in ingested.quarantined if q.settlement_id == settlement_id]
+            claimed_rejected_net = 0
+            for row in rejected_rows:
+                try:
+                    claimed_rejected_net += int(row.raw.get("net_paise", "0"))
+                except (TypeError, ValueError):
+                    pass
             exceptions.append(ExceptionItem(
-                (settlement_id,), "UNSUPPORTED_MEMBER_IN_BATCH", 1.0,
+                (settlement_id,), "TAINTED_SETTLEMENT", 1.0,
                 {"settlement_id": settlement_id,
                  "known_member_txn_ids": sorted(m.txn_id for m in members),
-                 "quarantined_rows": [q.source_row_id for q in ingested.quarantined
-                                      if q.settlement_id == settlement_id]},
+                 "known_member_net_paise": sum(m.net_paise for m in members),
+                 "quarantined_claimed_net_paise": claimed_rejected_net,
+                 "claimed_exposure_paise": sum(m.net_paise for m in members) + claimed_rejected_net,
+                 "quarantined_rows": [q.source_row_id for q in rejected_rows],
+                 "quarantine_reasons": sorted({q.reason for q in rejected_rows})},
             ))
         non_null = {m.settlement_utr for m in members if m.settlement_utr}
         if len(non_null) > 1:

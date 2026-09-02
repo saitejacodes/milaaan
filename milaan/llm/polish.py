@@ -1,4 +1,10 @@
-"""Field firewall and evidence-subset check for language-only model output."""
+"""Fail-closed firewall for optional exception-language model output.
+
+The canonical exception status and action are accounting controls.  A lexical
+identifier/amount allow-list cannot detect negation or semantic reversal, so
+live prose is accepted only when it preserves the complete canonical text.
+Meaningful AI interaction lives in the read-only investigation layer instead.
+"""
 
 from __future__ import annotations
 
@@ -49,6 +55,15 @@ def _allowed_facts(item: ExceptionItem) -> tuple[set[str], set[int]]:
 
 
 def content_is_invariant(item: ExceptionItem, narrative: str, guidance: list[str]) -> bool:
+    canonical_narrative = item.narrative.strip()
+    canonical_guidance = [line.removeprefix("- ").strip()
+                          for line in item.guidance.splitlines() if line.strip()]
+    cleaned_guidance = [line.strip() for line in guidance]
+    if (not canonical_narrative or not canonical_guidance
+            or narrative.strip() != canonical_narrative
+            or cleaned_guidance != canonical_guidance
+            or any(not line for line in cleaned_guidance)):
+        return False
     text = narrative + " " + " ".join(guidance)
     allowed_ids, allowed_amounts = _allowed_facts(item)
     if not set(ID_RE.findall(text)).issubset(allowed_ids):

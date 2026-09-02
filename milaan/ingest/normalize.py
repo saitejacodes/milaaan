@@ -99,10 +99,37 @@ def normalize_inputs(data_dir: Path, fees: FeeConfig) -> IngestResult:
     rejected: list[QuarantineRow] = []
     exceptions: list[ExceptionItem] = []
     tainted: set[str] = set()
+    seen_order_ids: set[str] = set()
+    seen_txn_ids: set[str] = set()
+    seen_bank_ids: set[str] = set()
+
+    def reject_duplicate(source: str, raw: dict[str, str], entity_field: str) -> bool:
+        entity_id = raw.get(entity_field, "")
+        seen = {
+            "orders": seen_order_ids,
+            "gateway_recon": seen_txn_ids,
+            "bank": seen_bank_ids,
+        }[source]
+        if not entity_id or entity_id not in seen:
+            return False
+        rejected.append(quarantined(source, raw, "DUPLICATE_SOURCE_ID"))
+        if source == "gateway_recon" and raw.get("settlement_id"):
+            tainted.add(raw["settlement_id"])
+        exceptions.append(ExceptionItem(
+            (raw.get("source_row_id", f"{source}:unknown"),),
+            "DUPLICATE_SOURCE_ID", 1.0,
+            {"source": source, "duplicate_entity_id": entity_id,
+             "source_row_id": raw.get("source_row_id")},
+        ))
+        return True
 
     for raw in order_rows:
+        if reject_duplicate("orders", raw, "order_id"):
+            continue
         try:
-            orders.append(_normalize_order(raw))
+            item = _normalize_order(raw)
+            orders.append(item)
+            seen_order_ids.add(item.order_id)
         except (KeyError, TypeError, ValueError) as exc:
             rejected.append(quarantined("orders", raw, f"INGEST_REJECT:{type(exc).__name__}"))
             exceptions.append(ExceptionItem(
@@ -111,15 +138,27 @@ def normalize_inputs(data_dir: Path, fees: FeeConfig) -> IngestResult:
             ))
 
     for raw in txn_rows:
+        if reject_duplicate("gateway_recon", raw, "entity_id"):
+            continue
         try:
             if raw.get("type", "").upper() not in {item.value for item in TxnType}:
                 rejected.append(quarantined("gateway_recon", raw, "unsupported_type"))
                 if raw.get("settlement_id"):
                     tainted.add(raw["settlement_id"])
+                exceptions.append(ExceptionItem(
+                    (raw.get("entity_id", raw.get("source_row_id", "recon:unknown")),),
+                    "UNSUPPORTED_TXN_TYPE", 1.0,
+                    {"source_row_id": raw.get("source_row_id"),
+                     "type": raw.get("type"), "settlement_id": raw.get("settlement_id")},
+                ))
                 continue
-            txns.append(_normalize_txn(raw, fees))
+            item = _normalize_txn(raw, fees)
+            txns.append(item)
+            seen_txn_ids.add(item.txn_id)
         except ArithmeticError:
             rejected.append(quarantined("gateway_recon", raw, "FEE_MODEL_VIOLATION"))
+            if raw.get("settlement_id"):
+                tainted.add(raw["settlement_id"])
             exceptions.append(ExceptionItem(
                 (raw.get("entity_id", raw.get("source_row_id", "recon:unknown")),),
                 "FEE_MODEL_VIOLATION", 1.0,
@@ -127,14 +166,20 @@ def normalize_inputs(data_dir: Path, fees: FeeConfig) -> IngestResult:
             ))
         except (KeyError, TypeError, ValueError) as exc:
             rejected.append(quarantined("gateway_recon", raw, f"INGEST_REJECT:{type(exc).__name__}"))
+            if raw.get("settlement_id"):
+                tainted.add(raw["settlement_id"])
             exceptions.append(ExceptionItem(
                 (raw.get("source_row_id", "recon:unknown"),), "INGEST_REJECT", 1.0,
                 {"source": "gateway_recon", "error": type(exc).__name__},
             ))
 
     for raw in bank_rows:
+        if reject_duplicate("bank", raw, "line_id"):
+            continue
         try:
-            bank.append(_normalize_bank(raw))
+            item = _normalize_bank(raw)
+            bank.append(item)
+            seen_bank_ids.add(item.line_id)
         except (KeyError, TypeError, ValueError) as exc:
             rejected.append(quarantined("bank", raw, f"INGEST_REJECT:{type(exc).__name__}"))
             exceptions.append(ExceptionItem(

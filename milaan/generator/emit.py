@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import random
 from pathlib import Path
@@ -41,6 +42,14 @@ def _write_json(path: Path, value: object) -> None:
                     encoding="utf-8")
 
 
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def generate_to_directory(records: int, seed: int, profile: str, out: Path) -> str:
     rng = random.Random(seed)
     world = build_world(records, seed, profile, rng, load_fees(), load_timing())
@@ -50,6 +59,11 @@ def generate_to_directory(records: int, seed: int, profile: str, out: Path) -> s
     _write_csv(out / "orders.csv", ORDER_FIELDS, world.orders, "order_id")
     _write_csv(out / "gateway_recon.csv", TXN_FIELDS, world.txns, "entity_id")
     _write_csv(out / "bank.csv", BANK_FIELDS, world.bank, "line_id")
+    manifest["input_hashes"] = {
+        "orders": _sha256(out / "orders.csv"),
+        "gateway_recon": _sha256(out / "gateway_recon.csv"),
+        "bank": _sha256(out / "bank.csv"),
+    }
     _write_json(out / "manifest.json", manifest)
     _write_json(out / "run_meta.json", {
         "seed": seed, "profile": profile, "records": records,

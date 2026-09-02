@@ -35,6 +35,14 @@ def _batch_amount(world: World, settlement_id: str) -> int:
     return sum(int(t["net_paise"]) for t in world.txns if t["settlement_id"] == settlement_id)
 
 
+def _batch_processed_at(world: World, settlement_id: str) -> datetime:
+    values = {datetime.fromisoformat(str(t["settlement_processed_at"]))
+              for t in world.txns if t["settlement_id"] == settlement_id}
+    if len(values) != 1:
+        raise AssertionError(f"settlement {settlement_id} has inconsistent processing dates")
+    return next(iter(values))
+
+
 def _add_balancing_adjustment(world: World, rng: random.Random, settlement_id: str,
                               delta: int, label: str) -> None:
     members = [t for t in world.txns if t["settlement_id"] == settlement_id]
@@ -72,8 +80,12 @@ def apply_injections(world: World, rng: random.Random) -> World:
     if delta:
         _add_balancing_adjustment(world, rng, sid_b, delta, "twin")
     twin_b["credit_paise"] = target
-    twin_b["value_date"] = twin_a["value_date"]
-    twin_b["txn_date"] = twin_a["txn_date"]
+    common_credit_date = max(_batch_processed_at(world, sid_a),
+                             _batch_processed_at(world, sid_b)).date().isoformat()
+    twin_a["value_date"] = common_credit_date
+    twin_a["txn_date"] = common_credit_date
+    twin_b["value_date"] = common_credit_date
+    twin_b["txn_date"] = common_credit_date
     twin_a["narration"] = "NEFT-NOREF-SETTLEMENT-A"
     twin_b["narration"] = "IMPS-NOREF-SETTLEMENT-B"
     twin_a["ref_no"], twin_b["ref_no"] = "NOREF-A", "NOREF-B"
@@ -171,6 +183,10 @@ def apply_injections(world: World, rng: random.Random) -> World:
         combined["credit_paise"] = int(first["credit_paise"]) + int(second["credit_paise"])
         combined["narration"] = "NEFT-COMBINED-SETTLEMENT-NOREF"
         combined["ref_no"] = "NOREF"
+        common_credit_date = max(_batch_processed_at(world, first_sid),
+                                 _batch_processed_at(world, second_sid)).date().isoformat()
+        combined["value_date"] = common_credit_date
+        combined["txn_date"] = common_credit_date
         world.bank.remove(first)
         world.bank.remove(second)
         world.bank.append(combined)
