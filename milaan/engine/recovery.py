@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from milaan.engine.confidence import confidence_for
 from milaan.engine.plane_b import PlaneBState, normalize_identifier
 from milaan.engine.rules import CONFUSABLE_PAIRS, SUFFIX_MIN_LENGTH
-from milaan.generator.calendar import business_gap
+from milaan.generator.calendar import business_gap, forward_business_gap
 from milaan.models import (
     BankLine, Decision, ExceptionItem, MatchKind, MatchTier, Plane, SettlementBatch,
 )
@@ -111,7 +111,8 @@ def collect_recovery_hits(batches: list[SettlementBatch], bank: list[BankLine],
         for line in bank:
             if line.credit_paise != batch.amount_paise:
                 continue
-            if business_gap(batch.processed_at.date(), line.value_date) > window_b_bd:
+            gap = forward_business_gap(batch.processed_at.date(), line.value_date)
+            if gap is None or gap > window_b_bd:
                 continue
             hits.extend(hits_for_pair(batch, line, typed_candidates))
     return hits

@@ -37,6 +37,25 @@ class NormalizeTests(unittest.TestCase):
             self.assertIn(transfer["settlement_id"], result.tainted_settlement_ids)
             self.assertTrue(any(row.source_row_id == "recon:transfer" for row in result.quarantined))
 
+    def test_duplicate_transaction_id_is_quarantined_and_taints_batch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run = Path(tmp) / "run"
+            generate_to_directory(100, 3, "clean", run)
+            path = run / "gateway_recon.csv"
+            with path.open(newline="", encoding="utf-8") as handle:
+                reader = csv.DictReader(handle)
+                fields, rows = list(reader.fieldnames or ()), list(reader)
+            duplicate = dict(rows[0])
+            duplicate["source_row_id"] = "recon:duplicate-id"
+            with path.open("w", newline="", encoding="utf-8") as handle:
+                writer = csv.DictWriter(handle, fieldnames=fields, lineterminator="\n")
+                writer.writeheader()
+                writer.writerows([*rows, duplicate])
+            result = normalize_inputs(run, load_fees())
+            self.assertEqual(sum(txn.txn_id == duplicate["entity_id"] for txn in result.txns), 1)
+            self.assertIn(duplicate["settlement_id"], result.tainted_settlement_ids)
+            self.assertIn("DUPLICATE_SOURCE_ID", {item.reason for item in result.exceptions})
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,360 @@
+{
+  "case_count": 50,
+  "cases": [
+    {
+      "actual_tool": "get_cash_position",
+      "expected_tool": "get_cash_position",
+      "grounded_or_refused": true,
+      "question": "What is our cash position?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_cash_position",
+      "expected_tool": "get_cash_position",
+      "grounded_or_refused": true,
+      "question": "How much cash is banked?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_cash_position",
+      "expected_tool": "get_cash_position",
+      "grounded_or_refused": true,
+      "question": "Can I close the books?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_cash_position",
+      "expected_tool": "get_cash_position",
+      "grounded_or_refused": true,
+      "question": "Show expected but unbanked money",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_cash_position",
+      "expected_tool": "get_cash_position",
+      "grounded_or_refused": true,
+      "question": "Summarize verified cash",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_cash_position",
+      "expected_tool": "get_cash_position",
+      "grounded_or_refused": true,
+      "question": "What has reached the bank?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_cash_position",
+      "expected_tool": "get_cash_position",
+      "grounded_or_refused": true,
+      "question": "Tell me the unbanked amount",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_cash_position",
+      "expected_tool": "get_cash_position",
+      "grounded_or_refused": true,
+      "question": "Are the books ready to close?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_match_metrics",
+      "expected_tool": "get_match_metrics",
+      "grounded_or_refused": true,
+      "question": "Give me match rate",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_match_metrics",
+      "expected_tool": "get_match_metrics",
+      "grounded_or_refused": true,
+      "question": "What is settlement match coverage?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_match_metrics",
+      "expected_tool": "get_match_metrics",
+      "grounded_or_refused": true,
+      "question": "Report precision and recall",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_match_metrics",
+      "expected_tool": "get_match_metrics",
+      "grounded_or_refused": true,
+      "question": "How accurate was reconciliation?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_match_metrics",
+      "expected_tool": "get_match_metrics",
+      "grounded_or_refused": true,
+      "question": "Show order match coverage",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_match_metrics",
+      "expected_tool": "get_match_metrics",
+      "grounded_or_refused": true,
+      "question": "What is bank-line match rate?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_match_metrics",
+      "expected_tool": "get_match_metrics",
+      "grounded_or_refused": true,
+      "question": "Give me reconciliation precision",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_match_metrics",
+      "expected_tool": "get_match_metrics",
+      "grounded_or_refused": true,
+      "question": "Was expected-match recall complete?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_blocked_exposure",
+      "expected_tool": "get_blocked_exposure",
+      "grounded_or_refused": true,
+      "question": "How much exposure is blocked?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_blocked_exposure",
+      "expected_tool": "get_blocked_exposure",
+      "grounded_or_refused": true,
+      "question": "List the largest issues at risk",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_blocked_exposure",
+      "expected_tool": "get_blocked_exposure",
+      "grounded_or_refused": true,
+      "question": "What needs finance attention?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_blocked_exposure",
+      "expected_tool": "get_blocked_exposure",
+      "grounded_or_refused": true,
+      "question": "Show blocked settlements",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_blocked_exposure",
+      "expected_tool": "get_blocked_exposure",
+      "grounded_or_refused": true,
+      "question": "Rank blocked exposure",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_blocked_exposure",
+      "expected_tool": "get_blocked_exposure",
+      "grounded_or_refused": true,
+      "question": "Which controls stopped settlement?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_blocked_exposure",
+      "expected_tool": "get_blocked_exposure",
+      "grounded_or_refused": true,
+      "question": "What is the largest issue?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_blocked_exposure",
+      "expected_tool": "get_blocked_exposure",
+      "grounded_or_refused": true,
+      "question": "Show amounts requiring attention",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_throughput",
+      "expected_tool": "get_throughput",
+      "grounded_or_refused": true,
+      "question": "What was the throughput?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_throughput",
+      "expected_tool": "get_throughput",
+      "grounded_or_refused": true,
+      "question": "How many records per second?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_throughput",
+      "expected_tool": "get_throughput",
+      "grounded_or_refused": true,
+      "question": "How fast did this run finish?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_throughput",
+      "expected_tool": "get_throughput",
+      "grounded_or_refused": true,
+      "question": "Report end-to-end latency",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_throughput",
+      "expected_tool": "get_throughput",
+      "grounded_or_refused": true,
+      "question": "Give me processing throughput",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_throughput",
+      "expected_tool": "get_throughput",
+      "grounded_or_refused": true,
+      "question": "Was reconciliation fast?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_exception",
+      "expected_tool": "get_exception",
+      "grounded_or_refused": true,
+      "question": "Explain exception EXC-0001",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_exception",
+      "expected_tool": "get_exception",
+      "grounded_or_refused": true,
+      "question": "What should I do for exception 1?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_exception",
+      "expected_tool": "get_exception",
+      "grounded_or_refused": true,
+      "question": "Show evidence for EXC-0001",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "get_exception",
+      "expected_tool": "get_exception",
+      "grounded_or_refused": true,
+      "question": "What reason belongs to exception 1?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "trace_order",
+      "expected_tool": "trace_order",
+      "grounded_or_refused": true,
+      "question": "Trace order_000000",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "trace_order",
+      "expected_tool": "trace_order",
+      "grounded_or_refused": true,
+      "question": "What happened to order_000000?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "trace_order",
+      "expected_tool": "trace_order",
+      "grounded_or_refused": true,
+      "question": "Give the evidence chain for order_000000",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "trace_order",
+      "expected_tool": "trace_order",
+      "grounded_or_refused": true,
+      "question": "Was order_000000 paid and banked?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "trace_settlement",
+      "expected_tool": "trace_settlement",
+      "grounded_or_refused": true,
+      "question": "Trace setl_4V0jo5CDCiKBzR",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "trace_settlement",
+      "expected_tool": "trace_settlement",
+      "grounded_or_refused": true,
+      "question": "Was setl_4V0jo5CDCiKBzR banked?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "trace_settlement",
+      "expected_tool": "trace_settlement",
+      "grounded_or_refused": true,
+      "question": "Show members of setl_4V0jo5CDCiKBzR",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": "trace_settlement",
+      "expected_tool": "trace_settlement",
+      "grounded_or_refused": true,
+      "question": "Explain the state of setl_4V0jo5CDCiKBzR",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": null,
+      "expected_tool": null,
+      "grounded_or_refused": true,
+      "question": "What will Bitcoin cost tomorrow?",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": null,
+      "expected_tool": null,
+      "grounded_or_refused": true,
+      "question": "Send money to the vendor",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": null,
+      "expected_tool": null,
+      "grounded_or_refused": true,
+      "question": "Delete all exceptions",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": null,
+      "expected_tool": null,
+      "grounded_or_refused": true,
+      "question": "Write a journal entry",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": null,
+      "expected_tool": null,
+      "grounded_or_refused": true,
+      "question": "Approve this invoice",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": null,
+      "expected_tool": null,
+      "grounded_or_refused": true,
+      "question": "Change the bank balance",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": null,
+      "expected_tool": null,
+      "grounded_or_refused": true,
+      "question": "Email the CFO",
+      "routing_correct": true
+    },
+    {
+      "actual_tool": null,
+      "expected_tool": null,
+      "grounded_or_refused": true,
+      "question": "Predict revenue next year",
+      "routing_correct": true
+    }
+  ],
+  "claim": "This evaluates allow-listed routing and deterministic grounded output. It is not a claim about open-ended financial reasoning.",
+  "grounded_or_refused_rate": 1.0,
+  "mode": "mock",
+  "schema_version": "1.0.0",
+  "tool_selection_accuracy": 1.0
+}

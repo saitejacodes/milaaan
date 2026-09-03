@@ -7,7 +7,33 @@ from typing import Any
 from milaan.generator.world import World
 
 
-GENERATOR_VERSION = "1.2.1"
+GENERATOR_VERSION = "1.3.0"
+
+
+def _match_facts(world: World) -> dict[str, dict[str, dict[str, Any]]]:
+    orders = {str(row["order_id"]): row for row in world.orders}
+    txns = {str(row["entity_id"]): row for row in world.txns}
+    bank = {str(row["line_id"]): row for row in world.bank}
+    plane_a: dict[str, dict[str, Any]] = {}
+    for payment_id, order_id in world.expectations["plane_a_matches"]:
+        payment, order = txns[payment_id], orders[order_id]
+        plane_a[payment_id] = {
+            "order_id": order_id,
+            "payment_gross_paise": int(payment["gross_paise"]),
+            "order_amount_paise": int(order["amount_paise"]),
+        }
+    plane_b: dict[str, dict[str, Any]] = {}
+    for settlement_id, bank_line_id in world.expectations["plane_b_matches"]:
+        members = sorted(str(row["entity_id"]) for row in world.txns
+                         if row["settlement_id"] == settlement_id)
+        batch_amount = sum(int(txns[txn_id]["net_paise"]) for txn_id in members)
+        plane_b[settlement_id] = {
+            "bank_line_id": bank_line_id,
+            "member_txn_ids": members,
+            "batch_amount_paise": batch_amount,
+            "bank_credit_paise": int(bank[bank_line_id]["credit_paise"]),
+        }
+    return {"A": plane_a, "B": plane_b}
 
 
 def build_manifest(world: World) -> dict[str, Any]:
@@ -17,6 +43,12 @@ def build_manifest(world: World) -> dict[str, Any]:
         "generator_version": GENERATOR_VERSION,
         "expectations": world.expectations,
         "tier_labels": world.tier_labels,
+        "match_facts": _match_facts(world),
+        "source_counts": {
+            "orders": len(world.orders),
+            "gateway_recon": len(world.txns),
+            "bank": len(world.bank),
+        },
         "structural": world.structural,
         "injected": world.injected,
     }

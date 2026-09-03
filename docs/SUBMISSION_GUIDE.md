@@ -1,64 +1,74 @@
-# Submission Guide
+# Milaan v1.3 submission guide
 
 ## One-line pitch
 
-Milaan is a deterministic three-way settlement controller that proves matches,
-abstains with exact evidence, and uses AI only to explain exceptions—never to
-move a number.
+Milaan is a fail-closed AI finance controller: deterministic code owns every
+rupee, while AI investigates verified cash exposure and exceptions through
+read-only tools.
 
 ## Five-minute demo
 
-1. **0:00–0:35 — State the loop.** “Milaan reconciles merchant orders to
-   gateway settlement rows to bank credits, then explains every abstention.”
-   Show the Track 04 requirement table at the top of the README.
-2. **0:35–1:10 — State the trust boundary.** Show the architecture diagram and
-   say: “The books are code. The model only explains them.” Name grouping by
-   `settlement_id`, database exclusivity, and taint-and-abstain.
-3. **1:10–1:35 — Reproduce it.** Run `make demo`. Point out that it uses 1,200
-   records, requires no API key, and prints real numerators and denominators.
-4. **1:35–2:20 — Show the scorecard.** Open `data/run42/report.html`. Show Plane
-   A 1,154/1,154, Plane B 21/21, exception recall 6/6, completeness
-   2,363/2,363, and zero false matches on this named synthetic benchmark.
-5. **2:20–3:10 — Show proof, not just a card.** Show the signed-member drill-down:
-   payment/refund/adjustment nets sum to one batch and equal one bank credit.
-   Then show two batches on the same date remaining separate by `settlement_id`.
-6. **3:10–3:50 — Show difficult evidence.** Show deterministic B2 recovery and
-   its highlighted narration span. Explain that bounded evidence recovery is
-   code because enumeration can decide it.
-7. **3:50–4:25 — Show honesty.** Open `AMBIGUOUS_TIE` and show the candidates.
-   Say that choosing either would be plausible but unprovable, so Milaan abstains.
-8. **4:25–5:00 — Close on AI and portability.** Show the BYO-LLM table in the
-   README: OpenAI-compatible, Ollama, Anthropic, and Gemini. Explain that the
-   model changes only wording, the firewall rejects new facts, and CI requires
-   byte-identical functional metrics with live mode on or off.
+1. **0:00–0:30 — The finance loop.** “Milaan reconciles orders to gateway
+   transactions to settlement batches to bank credits, then reports the cash
+   position and every unresolved exception.”
+2. **0:30–1:00 — The trust boundary.** Show `docs/ARCHITECTURE.md`. State that
+   models cannot match, post, calculate money, or write accounting state.
+3. **1:00–1:30 — Reproduce it.** Run `make demo`. Point out 1,200 orders,
+   2,467 physical source records, exact hashes, and no required API key.
+4. **1:30–2:10 — Honest measurements.** Open the report. First show expected-pair
+   precision/recall, then the separate workload coverage: 99.91% of eligible
+   orders and 80.77% of settlement batches. Explain that abstentions are not
+   hidden inside a 100% headline.
+5. **2:10–2:45 — Cash position.** Show verified banked, expected-unbanked,
+   blocked, and unexplained bank amounts. Open one amount to its evidence IDs.
+6. **2:45–3:20 — Ask Milaan.** Ask “Why is cash blocked?” The model selects an
+   allow-listed read-only tool; code returns the amount and cited settlements.
+   Then ask “Delete all exceptions” and show the refusal.
+7. **3:20–4:10 — Failure recovery.** Corrupt one settlement member fee and
+   reduce the bank credit to the tempting partial sum. Show that the entire batch
+   is tainted, no match is posted, and the exception names the quarantined row.
+8. **4:10–4:40 — Proof and scale.** Show signed-member batch proof, input hash
+   binding, 2,467/2,467 source conservation, and the five-size benchmark.
+9. **4:40–5:00 — Close.** “Milaan does not maximize the number of matches. It
+   maximizes the number of matches a finance team can safely defend.”
 
-## Reproducible numbers to use
+## Exact named results
 
-Always name the benchmark: seed 42, mixed profile, generator 1.2.1, 1,200
-orders.
+Always name the benchmark: **seed 42, mixed profile, generator 1.3.0, 1,200
+orders, 2,467 physical source records**.
 
-- Plane A: 1,154/1,154 correct auto-matches.
-- Plane B: 21/21 correct auto-matches.
-- Expected exception recall and precision: 6/6 each.
-- Completeness: 2,363/2,363 entities.
+- Plane A expected-match recall and precision: 1,154/1,154 each.
+- Plane B expected-match recall and precision: 21/21 each.
+- Workload coverage: 1,154/1,155 eligible orders; 21/26 settlement batches;
+  21/28 bank lines.
+- Exception recall and precision: 6/6 each.
+- Source-record conservation: 2,467/2,467.
+- Settlement amount conservation delta: 0 paise.
 - False matches: 0 on this named synthetic benchmark.
-- Offline automated tests: 49/49.
-- Fresh-clone `make demo`: 3 seconds in the verification environment.
+- Offline finance-agent gate: 50/50 tool selections and 50/50 grounded/refused
+  outputs. This is not a real-model benchmark.
+- Three-run median throughput: 20,364 source records/s at 1,200 orders and
+  20,876 source records/s at 10,000 orders in the verification environment.
 
 ## “Where is the AI?” answer
 
-> Nowhere near the money—by proof, not preference. Three hostile review rounds
-> showed that each proposed model-in-the-loop role was deterministically
-> reachable, so the final system lets the model touch only exception language.
-> CI verifies that the books are byte-identical with the model on or off. Every
-> hostile review removed another place where the system could pretend certainty.
+> The AI converts a natural-language finance question into one approved,
+> read-only investigation tool call. Deterministic code returns the monetary
+> answer and evidence IDs. The model is useful for operator intent, but it has
+> no authority to invent a fact, approve a match, or post money.
+
+If a real provider is shown, name its provider/model and separately report its
+result. Never present the offline deterministic-router score as model accuracy.
 
 ## Before uploading
 
-- Create the GitHub repository and push the existing commit history.
-- Replace the README CI badge target if the repository slug differs.
-- Run `make ci` once on the upload machine.
-- Confirm `data/samples/run42/report.html` opens locally.
-- Never commit `.env`, API keys, `data/.llm_cache.sqlite`, or run databases.
-- Do not claim production accuracy or universal zero false matches.
-- Do not add CP-SAT or a model-based matching path before submission.
+- Run `make ci` and confirm all clean, mixed, and hard gates pass.
+- Run `make benchmark`; copy only the newly measured numbers.
+- Open `data/samples/run42/report.html` and verify the cash and AI sections.
+- Start `make dashboard` and test one trace, one finance question, and one refusal.
+- Put the demo video and any live dashboard URL at the top of the README.
+- Confirm GitHub Actions passes on Python 3.11, 3.12, and 3.13.
+- Never commit `.env`, API keys, model cache, or run databases.
+- Do not claim production accuracy, real-world validation, or universal zero
+  false matches.
+- Do not add model-based matching or money movement before submission.

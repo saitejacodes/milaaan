@@ -6,7 +6,7 @@ import re
 from dataclasses import dataclass, field
 
 from milaan.engine.confidence import confidence_for
-from milaan.generator.calendar import business_gap
+from milaan.generator.calendar import business_gap, forward_business_gap
 from milaan.models import (
     BankLine, Decision, ExceptionItem, MatchKind, MatchTier, Plane, SettlementBatch,
 )
@@ -27,7 +27,8 @@ class PlaneBState:
 
 
 def _in_window(batch: SettlementBatch, line: BankLine, window_b_bd: int) -> bool:
-    return business_gap(batch.processed_at.date(), line.value_date) <= window_b_bd
+    gap = forward_business_gap(batch.processed_at.date(), line.value_date)
+    return gap is not None and gap <= window_b_bd
 
 
 def _decision(batch: SettlementBatch, line: BankLine, tier: MatchTier) -> Decision:

@@ -1,4 +1,26 @@
 {
+  "amount_conservation": {
+    "balanced": true,
+    "batch_total_paise": 878275225,
+    "delta_paise": 0,
+    "source_net_paise": 878275225
+  },
+  "benchmark_entity_completeness": {
+    "denominator": 2363,
+    "numerator": 2363,
+    "rate": 1.0
+  },
+  "cash_position": {
+    "banked_paise": 665019165,
+    "blocked_settlement_paise": 126202848,
+    "expected_unbanked_paise": 87053212,
+    "gross_attention_paise": 403150166,
+    "matched_amount_delta_paise": 0,
+    "matched_settlement_paise": 665019165,
+    "total_bank_credit_paise": 854913271,
+    "total_settlement_control_paise": 878275225,
+    "unexplained_bank_credit_paise": 189894106
+  },
   "completeness": {
     "denominator": 2363,
     "numerator": 2363,
@@ -19,13 +41,22 @@
     }
   },
   "false_match_count": 0,
-  "generator_version": "1.2.1",
+  "generator_version": "1.3.0",
   "input_hashes": {
-    "bank": "064d95110e53b57148a731925ea4b3e3bb242d24c40764568d1b2dedb1de197f",
+    "bank": "210c4f005da1e1333065221984278fac63e611268e83f7ee1bafd8279f8948ee",
     "fees": "32c5a294b09a72d63527b7a0428abb76588c6e0661cc0d44af3aa44c388103cb",
     "gateway_recon": "733ff0055daf4ed600ec7f7a96b70f53c2ce26fa83a8fc640b1cb319263d64f8",
     "orders": "57aaa6fccfae45bd10b8c0d2aec35239714ed3e48390635f423895470093b066",
     "timing": "942b291553c685d44e5ce395fe5f0970f1395148a25e1ea0ce3fd04a0ffe308d"
+  },
+  "input_integrity": {
+    "all_match": true,
+    "available": true,
+    "checks": {
+      "bank": true,
+      "gateway_recon": true,
+      "orders": true
+    }
   },
   "planes": {
     "A": {
@@ -35,6 +66,11 @@
         "rate": 1.0
       },
       "expected_count": 1154,
+      "expected_match_recall": {
+        "denominator": 1154,
+        "numerator": 1154,
+        "rate": 1.0
+      },
       "false_match_count": 0,
       "false_match_rate": {
         "denominator": 1154,
@@ -42,6 +78,11 @@
         "rate": 0.0
       },
       "found_count": 1154,
+      "match_precision": {
+        "denominator": 1154,
+        "numerator": 1154,
+        "rate": 1.0
+      },
       "tier_coverage": {
         "T0": {
           "denominator": 601,
@@ -67,6 +108,11 @@
         "rate": 1.0
       },
       "expected_count": 21,
+      "expected_match_recall": {
+        "denominator": 21,
+        "numerator": 21,
+        "rate": 1.0
+      },
       "false_match_count": 0,
       "false_match_rate": {
         "denominator": 21,
@@ -74,6 +120,11 @@
         "rate": 0.0
       },
       "found_count": 21,
+      "match_precision": {
+        "denominator": 21,
+        "numerator": 21,
+        "rate": 1.0
+      },
       "tier_coverage": {
         "T2": {
           "denominator": 2,
@@ -94,6 +145,41 @@
     }
   },
   "profile": "mixed",
-  "schema_version": "1.2.1",
-  "seed": 42
+  "schema_version": "1.3.0",
+  "seed": 42,
+  "source_record_conservation": {
+    "denominator": 2467,
+    "numerator": 2467,
+    "rate": 1.0,
+    "terminal_buckets": {
+      "exception": 366,
+      "ignored_failed_order": 45,
+      "matched": 2056,
+      "quarantined": 0
+    },
+    "total_source_records": 2467,
+    "unaccounted_ids": []
+  },
+  "workload_coverage": {
+    "plane_a_orders": {
+      "denominator": 1155,
+      "numerator": 1154,
+      "rate": 0.999134
+    },
+    "plane_a_payments": {
+      "denominator": 1154,
+      "numerator": 1154,
+      "rate": 1.0
+    },
+    "plane_b_bank_lines": {
+      "denominator": 28,
+      "numerator": 21,
+      "rate": 0.75
+    },
+    "plane_b_settlement_batches": {
+      "denominator": 26,
+      "numerator": 21,
+      "rate": 0.807692
+    }
+  }
 }
