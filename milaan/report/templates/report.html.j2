@@ -16,7 +16,17 @@
     .muted { color:var(--muted); }
     .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; }
     .card { background:var(--card); border:1px solid #ded7c7; border-radius:14px; padding:18px; box-shadow:0 3px 18px #554a3010; }
-    .value { font-size:28px; font-weight:800; color:var(--green); }
+    .value { font-size:26px; font-weight:800; color:var(--ink); overflow-wrap:anywhere; }
+    .value.good { color:var(--green); }
+    .value.bad { color:var(--red); }
+    .note { color:var(--muted); font-size:12px; margin-top:4px; }
+    .lede { font-size:19px; max-width:62ch; }
+    .loop { font-weight:700; color:var(--gold); letter-spacing:.3px; margin:6px 0 22px; }
+    .callout { background:#fff6df; border-left:4px solid var(--gold); border-radius:0 10px 10px 0; padding:12px 16px; }
+    .trace { display:grid; gap:6px; justify-items:stretch; margin:18px 0; }
+    .trace .step { background:var(--card); border:1px solid #ded7c7; border-radius:12px; padding:14px 18px; }
+    tr.traced { background:#fff6df; font-weight:700; }
+    .trace .arrow { text-align:center; color:var(--gold); font-size:20px; font-weight:800; }
     table { width:100%; border-collapse:collapse; background:var(--card); }
     th,td { border-bottom:1px solid #e6dfcf; padding:10px; text-align:left; vertical-align:top; }
     th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.7px; }

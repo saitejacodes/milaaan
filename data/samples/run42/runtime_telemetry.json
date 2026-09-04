@@ -3,11 +3,11 @@
   "profile": "mixed",
   "seed": 42,
   "source_records": 2467,
-  "source_records_per_second": 22633.03,
+  "source_records_per_second": 27411.11,
   "stage_ms": {
     "ingest_aggregate": 16,
-    "plane_a": 78,
+    "plane_a": 29,
     "plane_b": 4
   },
-  "wall_ms": 109
+  "wall_ms": 90
 }

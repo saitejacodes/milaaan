@@ -1,5 +1,5 @@
 .PHONY: test gen run run-live eval report ask agent-eval benchmark benchmark-smoke \
-        dashboard preview demo demo-live judge adversarial ci clean
+        dashboard preview sample demo demo-live judge adversarial ci clean
 
 PYTHON ?= python
 CLI ?= $(PYTHON) -m milaan.cli
@@ -54,6 +54,13 @@ benchmark-smoke:
 
 dashboard:
 	streamlit run milaan/dashboard.py -- --run $(DATA) --db $(DATA)/milaan.db
+
+## Regenerate the committed sample run and the README scorecard image.
+## Every number in both comes from this execution.
+sample:
+	$(PYTHON) -m milaan.evalx.judge --out data/samples/run42 --skip-attacks
+	$(PYTHON) -m pip install --quiet '.[preview]' 2>/dev/null || true
+	$(PYTHON) scripts/render_report_preview.py
 
 preview:
 	$(PYTHON) scripts/render_report_preview.py
