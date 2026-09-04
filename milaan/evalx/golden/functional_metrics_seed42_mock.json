@@ -13,6 +13,29 @@
   "cash_position": {
     "banked_paise": 665019165,
     "blocked_settlement_paise": 126202848,
+    "classification": {
+      "bank_line_buckets": {
+        "banked": 21,
+        "unexplained": 7
+      },
+      "bank_lines": {
+        "denominator": 28,
+        "numerator": 28,
+        "rate": 1.0
+      },
+      "settlement_buckets": {
+        "banked": 21,
+        "blocked": 4,
+        "expected_unbanked": 1
+      },
+      "settlements": {
+        "denominator": 26,
+        "numerator": 26,
+        "rate": 1.0
+      },
+      "unclassified_bank_line_ids": [],
+      "unclassified_settlement_ids": []
+    },
     "expected_unbanked_paise": 87053212,
     "gross_attention_paise": 403150166,
     "matched_amount_delta_paise": 0,

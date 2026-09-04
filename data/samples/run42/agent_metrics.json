@@ -653,7 +653,7 @@
     }
   ],
   "claim": "Offline mode measures Milaan's deterministic allow-list router, argument validator and refusal path. It is not a claim about language-model reasoning, and it is never mixed into reconciliation accuracy.",
-  "measured_at": "2026-09-04T04:53:01.667065+00:00",
+  "measured_at": "2026-09-04T05:06:11.959781+00:00",
   "mode": "mock",
   "platform": "macOS-26.6.2-arm64-arm-64bit",
   "python_version": "3.12.13",

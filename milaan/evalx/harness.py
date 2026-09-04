@@ -63,6 +63,19 @@ def _gate(metrics: dict, gate: str) -> list[str]:
         failures.append("manifest input hashes do not match evaluated source files")
     if metrics["truth_integrity"]["status"] != "PASS":
         failures.append("reconstructed truth could not be bound to this run")
+    # Double counting is a finance defect, not a rounding detail: every
+    # settlement and every bank line must land in exactly one cash bucket.
+    classification = metrics["cash_position"]["classification"]
+    if classification["settlements"]["rate"] != 1.0:
+        failures.append(
+            "cash position does not classify every settlement: "
+            f"{classification['unclassified_settlement_ids'][:5]}"
+        )
+    if classification["bank_lines"]["rate"] != 1.0:
+        failures.append(
+            "cash position does not classify every bank line: "
+            f"{classification['unclassified_bank_line_ids'][:5]}"
+        )
     if false:
         failures.append(f"false matches {false} != 0")
     return failures

@@ -275,25 +275,49 @@ def compute_metrics(conn: sqlite3.Connection, manifest: dict[str, Any]) -> dict[
         for entity_id in item["ids"]:
             exception_codes_by_id[entity_id].add(item["code"])
             exception_evidence_by_id[entity_id].append(item["evidence"])
+    def _settlement_exposure(settlement_id: str) -> int:
+        """What this settlement claims, even when no batch row survived ingestion.
+
+        A settlement whose members were *all* rejected has no aggregated batch
+        row at all. Reading exposure only from settlement_batches would make that
+        money silently disappear from the cash report, so the engine's own
+        claimed exposure -- recorded on the exception -- is used instead.
+        """
+        for evidence in exception_evidence_by_id.get(settlement_id, ()):
+            if "claimed_exposure_paise" in evidence:
+                return int(evidence["claimed_exposure_paise"])
+        row = batches.get(settlement_id)
+        return int(row["amount_paise"]) if row is not None else 0
+
     matched_settlement_paise = sum(int(batches[sid]["amount_paise"])
                                    for sid in matched_b_batches if sid in batches)
     banked_paise = sum(int(bank[line_id]["credit_paise"])
                        for line_id in matched_b_bank if line_id in bank)
+
+    # Every settlement lands in exactly one cash bucket. The classification is
+    # built as a mapping rather than three running totals so that double
+    # counting and omission are both detectable, not merely unlikely.
+    settlement_bucket: dict[str, str] = {}
     expected_unbanked_paise = 0
     blocked_paise = 0
-    for settlement_id, batch in batches.items():
+    for settlement_id in sorted(all_settlement_ids):
         if settlement_id in matched_b_batches:
+            settlement_bucket[settlement_id] = "banked"
             continue
-        exposure = int(batch["amount_paise"])
-        for evidence in exception_evidence_by_id.get(settlement_id, ()):
-            if "claimed_exposure_paise" in evidence:
-                exposure = int(evidence["claimed_exposure_paise"])
+        exposure = _settlement_exposure(settlement_id)
         if exception_codes_by_id.get(settlement_id) == {"MISSING_IN_BANK"}:
+            settlement_bucket[settlement_id] = "expected_unbanked"
             expected_unbanked_paise += exposure
         else:
+            settlement_bucket[settlement_id] = "blocked"
             blocked_paise += exposure
-    unexplained_bank_paise = sum(int(row["credit_paise"]) for line_id, row in bank.items()
-                                 if line_id not in matched_b_bank)
+
+    bank_bucket = {line_id: ("banked" if line_id in matched_b_bank else "unexplained")
+                   for line_id in bank}
+    unexplained_bank_paise = sum(int(bank[line_id]["credit_paise"])
+                                 for line_id, bucket in bank_bucket.items()
+                                 if bucket == "unexplained")
+
     cash_position = {
         "banked_paise": banked_paise,
         "matched_settlement_paise": matched_settlement_paise,
@@ -305,6 +329,16 @@ def compute_metrics(conn: sqlite3.Connection, manifest: dict[str, Any]) -> dict[
         "total_bank_credit_paise": sum(int(row["credit_paise"]) for row in bank.values()),
         "total_settlement_control_paise": matched_settlement_paise
                                             + expected_unbanked_paise + blocked_paise,
+        "classification": {
+            "settlements": _ratio(len(settlement_bucket), len(all_settlement_ids)),
+            "bank_lines": _ratio(len(bank_bucket), len(bank)),
+            "settlement_buckets": dict(sorted(
+                Counter(settlement_bucket.values()).items()
+            )),
+            "bank_line_buckets": dict(sorted(Counter(bank_bucket.values()).items())),
+            "unclassified_settlement_ids": sorted(all_settlement_ids - set(settlement_bucket)),
+            "unclassified_bank_line_ids": sorted(set(bank) - set(bank_bucket)),
+        },
     }
 
     return {

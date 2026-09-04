@@ -159,6 +159,15 @@ def run_judge(out_dir: Path, records: int = 1200, seed: int = 42,
         _pair("Unexplained bank credits", money(cash["unexplained_bank_credit_paise"])),
         _pair("Gross evidence under attention", money(cash["gross_attention_paise"])),
         "  Gross evidence under attention is not a loss estimate.",
+        _pair("Settlements classified",
+              f"{cash['classification']['settlements']['numerator']} / "
+              f"{cash['classification']['settlements']['denominator']} "
+              f"{json.dumps(cash['classification']['settlement_buckets'])}"),
+        _pair("Bank lines classified",
+              f"{cash['classification']['bank_lines']['numerator']} / "
+              f"{cash['classification']['bank_lines']['denominator']} "
+              f"{json.dumps(cash['classification']['bank_line_buckets'])}"),
+        "  Exactly one bucket each: no settlement or credit is counted twice.",
         "",
         "EXCEPTIONS",
         "----------",

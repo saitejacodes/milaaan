@@ -458,6 +458,12 @@ def build_view(run_dir: Path, database_path: Path) -> View:
                        "signed member sums and batch totals"},
             {"label": "False matches", "status": str(metrics["false_match_count"]),
              "detail": "accepted matches that disagree with independently rebuilt truth"},
+            {"label": "Cash classification",
+             "status": f"{cash['classification']['settlements']['rate']:.2%}",
+             "detail": f"every settlement lands in exactly one cash bucket "
+                       f"({json.dumps(cash['classification']['settlement_buckets'])}); "
+                       f"bank lines "
+                       f"{json.dumps(cash['classification']['bank_line_buckets'])}"},
         ],
         throughput={
             "records": int(telemetry.get("source_records", 0)),

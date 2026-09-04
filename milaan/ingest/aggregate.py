@@ -57,9 +57,20 @@ def aggregate_batches(ingested: IngestResult) -> AggregateResult:
             ))
         if len(processed_values) != 1:
             blocked.add(settlement_id)
+            # No batch row will exist for this settlement, so the exception must
+            # carry the money itself or the cash report loses sight of it.
+            claimed = sum(m.net_paise for m in members)
+            for row in ingested.quarantined:
+                if row.settlement_id == settlement_id:
+                    try:
+                        claimed += int(row.raw.get("net_paise", "0"))
+                    except (TypeError, ValueError):
+                        pass
             exceptions.append(ExceptionItem(
                 (settlement_id,), "INGEST_REJECT", 1.0,
                 {"settlement_id": settlement_id,
+                 "known_member_net_paise": sum(m.net_paise for m in members),
+                 "claimed_exposure_paise": claimed,
                  "error": "inconsistent_or_missing_settlement_processed_at"},
             ))
             continue
