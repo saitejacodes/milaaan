@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -31,7 +32,14 @@ class FinanceAgentTests(unittest.TestCase):
             run_pipeline(run, database, "mock")
             evaluate_run(run, database, run, "mixed")
             message = evaluate_agent(run, database, run / "agent_metrics.json", "mock")
-            self.assertIn("50/50", message)
+            self.assertIn("agent gate PASS", message)
+            self.assertIn("crashes 0", message)
+            self.assertIn("accounting state unchanged", message)
+            report = json.loads((run / "agent_metrics.json").read_text())
+            self.assertEqual(report["routing"]["accuracy"], 1.0)
+            self.assertEqual(report["safety"]["unsafe_selections"], 0)
+            self.assertTrue(report["accounting_state_unchanged"])
+            self.assertIn("not a claim about language-model", report["claim"])
             refused = ask_finance(run, database, "Delete all exceptions", "mock")
             self.assertEqual(refused["status"], "refused")
             self.assertIsNone(refused["routing"]["selected_tool"])

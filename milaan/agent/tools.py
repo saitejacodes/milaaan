@@ -22,6 +22,13 @@ class FinanceTools:
         self.run_dir = run_dir
         self.database_path = database_path
         self.metrics = json.loads((run_dir / "functional_metrics.json").read_text(encoding="utf-8"))
+        gate = self.metrics.get("gate", {})
+        if gate.get("status") != "PASS":
+            # Only evidence from a run that passed its own controls is quotable.
+            raise ValueError(
+                "functional_metrics.json did not pass its evaluation gate; "
+                "re-run `milaan eval` before asking questions about this run"
+            )
         telemetry_path = run_dir / "runtime_telemetry.json"
         self.telemetry = (json.loads(telemetry_path.read_text(encoding="utf-8"))
                           if telemetry_path.exists() else {})
@@ -211,6 +218,112 @@ class FinanceTools:
                 "answer": f"{settlement_id} is {state} for {money(int(batch['amount_paise']))}.",
                 "facts": facts, "evidence_ids": evidence}
 
+    def summarize_exception_queue(self) -> dict[str, Any]:
+        """Queue shape by reason code: what a finance team must work through."""
+        with self._connection() as conn:
+            rows = self._exception_rows(conn)
+            batches = {row["settlement_id"]: int(row["amount_paise"]) for row in
+                       conn.execute("SELECT settlement_id,amount_paise FROM settlement_batches")}
+            bank = {row["line_id"]: int(row["credit_paise"]) for row in
+                    conn.execute("SELECT line_id,credit_paise FROM raw_bank")}
+            orders = {row["order_id"]: int(row["amount_paise"]) for row in
+                      conn.execute("SELECT order_id,amount_paise FROM raw_orders")}
+        groups: dict[str, dict[str, Any]] = {}
+        for row in rows:
+            bucket = groups.setdefault(
+                row["reason_code"], {"reason_code": row["reason_code"], "count": 0,
+                                     "gross_evidence_paise": 0, "exception_ids": []}
+            )
+            bucket["count"] += 1
+            bucket["exception_ids"].append(f"EXC-{int(row['id']):04d}")
+            bucket["gross_evidence_paise"] += sum(
+                batches.get(entity_id, bank.get(entity_id, orders.get(entity_id, 0)))
+                for entity_id in row["scope_ids"]
+            )
+        items = sorted(groups.values(),
+                       key=lambda item: (-int(item["count"]), str(item["reason_code"])))
+        for item in items:
+            item["gross_evidence"] = money(int(item["gross_evidence_paise"]))
+        if rows:
+            headline = "; ".join(f"{item['reason_code']} x{item['count']}" for item in items[:6])
+            answer = (f"{len(rows)} open exceptions across {len(items)} reason codes: "
+                      f"{headline}. Gross evidence is the amount under review, "
+                      "not a loss estimate.")
+        else:
+            answer = "No open exceptions in this verified run."
+        return {"status": "ok", "tool": "summarize_exception_queue", "answer": answer,
+                "facts": {"total": len(rows), "by_reason_code": items},
+                "evidence_ids": [item["exception_ids"][0] for item in items[:10]]}
+
+    def list_unexplained_bank_credits(self) -> dict[str, Any]:
+        """Bank money Milaan could not attribute to any settlement batch."""
+        with self._connection() as conn:
+            matched = {row[0] for row in conn.execute(
+                "SELECT entity_id FROM match_members WHERE plane='B' AND entity_type='BANK_LINE'"
+            )}
+            lines = [dict(row) for row in conn.execute(
+                "SELECT line_id,value_date,narration,credit_paise,ref_no FROM raw_bank "
+                "ORDER BY credit_paise DESC,line_id"
+            )]
+        items = [
+            {**line, "amount": money(int(line["credit_paise"]))}
+            for line in lines if line["line_id"] not in matched
+        ]
+        total = sum(int(item["credit_paise"]) for item in items)
+        answer = (f"{len(items)} bank credits totalling {money(total)} are not explained "
+                  "by any verified settlement batch." if items else
+                  "Every bank credit in this run is explained by a verified settlement batch.")
+        return {"status": "ok", "tool": "list_unexplained_bank_credits", "answer": answer,
+                "facts": {"total_paise": total, "items": items},
+                "evidence_ids": [str(item["line_id"]) for item in items[:10]]}
+
+    def explain_why_unmatched(self, entity_id: str) -> dict[str, Any]:
+        """State, in verified terms, why one record carries no accounting match."""
+        with self._connection() as conn:
+            kind = None
+            for table, column, label in (
+                ("raw_orders", "order_id", "order"), ("raw_txns", "txn_id", "gateway_txn"),
+                ("settlement_batches", "settlement_id", "settlement"),
+                ("raw_bank", "line_id", "bank_line"),
+            ):
+                row = conn.execute(
+                    f"SELECT * FROM {table} WHERE {column}=?", (entity_id,)  # noqa: S608 - fixed table names
+                ).fetchone()
+                if row is not None:
+                    kind, record = label, dict(row)
+                    break
+            if kind is None:
+                return self.refusal(f"No verified record exists for {entity_id}.")
+            matched = conn.execute(
+                "SELECT plane,entity_type FROM match_members WHERE entity_id=?", (entity_id,)
+            ).fetchall()
+            exceptions = [row for row in self._exception_rows(conn)
+                          if entity_id in row["scope_ids"]]
+        planes = sorted({row["plane"] for row in matched})
+        if matched and not exceptions:
+            answer = (f"{entity_id} is matched on plane {'/'.join(planes)}; "
+                      "it is not an unmatched record.")
+            state = "matched"
+        elif exceptions:
+            reasons = ", ".join(sorted({row["reason_code"] for row in exceptions}))
+            actions = sorted({row["suggested_action"] for row in exceptions})
+            answer = (f"{entity_id} carries no accounting match because Milaan abstained: "
+                      f"{reasons}. Next action: {actions[0]}")
+            state = "excepted"
+        else:
+            answer = (f"{entity_id} is neither matched nor excepted in this run; "
+                      "treat it as unaccounted and re-run evaluation.")
+            state = "unaccounted"
+        return {"status": "ok", "tool": "explain_why_unmatched", "answer": answer,
+                "facts": {"entity_id": entity_id, "record_kind": kind, "state": state,
+                          "record": record, "matched_planes": planes,
+                          "exceptions": [{"exception_id": f"EXC-{int(row['id']):04d}",
+                                          "reason_code": row["reason_code"],
+                                          "evidence": row["evidence"],
+                                          "suggested_action": row["suggested_action"]}
+                                         for row in exceptions]},
+                "evidence_ids": [entity_id, *[f"EXC-{int(row['id']):04d}" for row in exceptions]]}
+
     def get_throughput(self) -> dict[str, Any]:
         records = int(self.telemetry.get("source_records", 0))
         rate = float(self.telemetry.get("source_records_per_second", 0))
@@ -229,7 +342,9 @@ class FinanceTools:
             "evidence_ids": [],
             "supported_questions": [
                 "cash position", "match coverage", "blocked exposure",
-                "exception EXC-0001", "trace order_<id>", "trace setl_<id>", "throughput",
+                "exception queue summary", "unexplained bank credits",
+                "why is <id> unmatched", "exception EXC-0001",
+                "trace order_<id>", "trace setl_<id>", "throughput",
             ],
         }
 
@@ -243,4 +358,7 @@ class FinanceTools:
             "trace_order": self.trace_order,
             "trace_settlement": self.trace_settlement,
             "get_throughput": self.get_throughput,
+            "summarize_exception_queue": self.summarize_exception_queue,
+            "list_unexplained_bank_credits": self.list_unexplained_bank_credits,
+            "explain_why_unmatched": self.explain_why_unmatched,
         }

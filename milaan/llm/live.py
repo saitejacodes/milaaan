@@ -13,6 +13,7 @@ import hashlib
 import json
 import os
 import re
+import sqlite3
 import time
 from typing import Any
 from urllib.parse import quote
@@ -20,6 +21,16 @@ from urllib.parse import quote
 from milaan.config import load_environment
 from milaan.llm.cache import ResponseCache
 from milaan.llm.client import LLMCall
+
+
+class ProviderError(RuntimeError):
+    """Single failure type for everything that can go wrong outside our control.
+
+    Configuration, transport, HTTP status, response envelope shape and model
+    content are all provider-side concerns. Collapsing them into one exception
+    type gives callers exactly one boundary to defend, which is why a malformed
+    model body can no longer escape as an unhandled ValueError.
+    """
 
 
 PROMPT_VERSION = "4.0"
@@ -44,20 +55,33 @@ _DEFAULT_BASE_URLS = {
 
 
 def _json_object(raw: str) -> dict[str, Any]:
-    """Parse a JSON object, tolerating only common markdown wrapping."""
+    """Parse a JSON object, tolerating only common markdown wrapping.
+
+    Prose around a JSON object is tolerated because real models emit it. A body
+    that is *valid JSON of the wrong shape* is not: if the model answered with
+    an array or a scalar, guessing which nested object it meant would be exactly
+    the silent inference this codebase refuses to make elsewhere.
+    """
     text = raw.strip()
     fenced = re.fullmatch(r"```(?:json)?\s*(.*?)\s*```", text, re.DOTALL | re.IGNORECASE)
     if fenced:
         text = fenced.group(1).strip()
-    candidates = [text]
+    try:
+        whole = json.loads(text)
+    except json.JSONDecodeError:
+        pass
+    else:
+        if isinstance(whole, dict):
+            return whole
+        raise ValueError(
+            f"provider returned valid JSON of type {type(whole).__name__}, not an object"
+        )
     first, last = text.find("{"), text.rfind("}")
-    if 0 <= first < last and (first != 0 or last != len(text) - 1):
-        candidates.append(text[first:last + 1])
-    for candidate in candidates:
+    if 0 <= first < last:
         try:
-            value = json.loads(candidate)
+            value = json.loads(text[first:last + 1])
         except json.JSONDecodeError:
-            continue
+            value = None
         if isinstance(value, dict):
             return value
     raise ValueError("provider did not return a JSON object")
@@ -198,7 +222,7 @@ class LiveLLM:
             return self._anthropic_request(prompt)
         if self.provider == "gemini":
             return self._gemini_request(prompt)
-        raise RuntimeError(self._configuration_error() or "unsupported LLM provider")
+        raise ProviderError(self._configuration_error() or "unsupported LLM provider")
 
     def _response(self, payload: dict[str, Any]) -> tuple[str, int | None, int | None]:
         try:
@@ -216,14 +240,18 @@ class LiveLLM:
             usage = payload.get("usageMetadata") or {}
             return raw, usage.get("promptTokenCount"), usage.get("candidatesTokenCount")
         except (KeyError, IndexError, StopIteration, TypeError) as exc:
-            raise RuntimeError(f"malformed {self.provider_name} response") from exc
+            raise ProviderError(f"malformed {self.provider_name} response envelope") from exc
 
     def complete_json(self, purpose: str, prompt: str) -> dict:
         problem = self._configuration_error()
         if problem:
-            raise RuntimeError(f"live LLM is not configured: {problem}; canonical templates remain active")
+            raise ProviderError(f"live LLM is not configured: {problem}; canonical templates remain active")
         key = self._key(purpose, prompt)
-        with ResponseCache() as cache:
+        try:
+            cache_context = ResponseCache()
+        except (sqlite3.Error, OSError) as exc:
+            raise ProviderError(f"response cache is unavailable: {exc}") from exc
+        with cache_context as cache:
             cached = cache.get(key)
             if cached is not None:
                 self.last_call = LLMCall(
@@ -236,7 +264,7 @@ class LiveLLM:
             try:
                 import httpx
             except ImportError as exc:
-                raise RuntimeError("httpx is required for live mode") from exc
+                raise ProviderError("httpx is required for live mode") from exc
             endpoint, headers, body, params = self._request(prompt)
             started = time.perf_counter()
             try:
@@ -247,9 +275,16 @@ class LiveLLM:
                 response.raise_for_status()
                 payload = response.json()
             except (httpx.HTTPError, json.JSONDecodeError) as exc:
-                raise RuntimeError(f"{self.provider_name} request failed: {exc}") from exc
+                raise ProviderError(f"{self.provider_name} request failed: {exc}") from exc
             raw, tokens_in, tokens_out = self._response(payload)
-            parsed = _json_object(raw)
+            try:
+                parsed = _json_object(raw)
+            except ValueError as exc:
+                # A valid HTTP response carrying unusable model content is a
+                # provider failure, not a Milaan crash.
+                raise ProviderError(
+                    f"{self.provider_name} returned content that is not a JSON object"
+                ) from exc
             price_in = _nonnegative_int("MILAAN_LLM_PRICE_IN_PAISE_PER_1K")
             price_out = _nonnegative_int("MILAAN_LLM_PRICE_OUT_PAISE_PER_1K")
             cost = ((tokens_in or 0) * price_in + (tokens_out or 0) * price_out + 999) // 1000

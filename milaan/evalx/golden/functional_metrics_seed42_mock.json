@@ -28,7 +28,10 @@
   },
   "exceptions": {
     "actual_count": 6,
+    "correct_count": 6,
     "expected_count": 6,
+    "false_count": 0,
+    "missed_count": 0,
     "precision": {
       "denominator": 6,
       "numerator": 6,
@@ -41,6 +44,11 @@
     }
   },
   "false_match_count": 0,
+  "gate": {
+    "failures": [],
+    "name": "mixed",
+    "status": "PASS"
+  },
   "generator_version": "1.3.0",
   "input_hashes": {
     "bank": "210c4f005da1e1333065221984278fac63e611268e83f7ee1bafd8279f8948ee",
@@ -99,7 +107,8 @@
           "numerator": 77,
           "rate": 1.0
         }
-      }
+      },
+      "true_match_count": 1154
     },
     "B": {
       "auto_match": {
@@ -141,11 +150,12 @@
           "numerator": 3,
           "rate": 1.0
         }
-      }
+      },
+      "true_match_count": 21
     }
   },
   "profile": "mixed",
-  "schema_version": "1.3.0",
+  "schema_version": "2.0.0",
   "seed": 42,
   "source_record_conservation": {
     "denominator": 2467,
@@ -159,6 +169,73 @@
     },
     "total_source_records": 2467,
     "unaccounted_ids": []
+  },
+  "truth_integrity": {
+    "database": {
+      "all_match": true,
+      "sources": {
+        "bank": {
+          "canonical_rows": 28,
+          "quarantined_rows": 0,
+          "stored_rows": 28
+        },
+        "gateway_recon": {
+          "canonical_rows": 1239,
+          "quarantined_rows": 0,
+          "stored_rows": 1239
+        },
+        "orders": {
+          "canonical_rows": 1200,
+          "quarantined_rows": 0,
+          "stored_rows": 1200
+        }
+      }
+    },
+    "generation_inputs": {
+      "config_hashes": {
+        "fees": "32c5a294b09a72d63527b7a0428abb76588c6e0661cc0d44af3aa44c388103cb",
+        "timing": "942b291553c685d44e5ce395fe5f0970f1395148a25e1ea0ce3fd04a0ffe308d"
+      },
+      "generator_version": "1.3.0",
+      "profile": "mixed",
+      "records": 1200,
+      "seed": 42
+    },
+    "inputs": {
+      "all_match": true,
+      "canonical_input_hashes": {
+        "bank": "210c4f005da1e1333065221984278fac63e611268e83f7ee1bafd8279f8948ee",
+        "gateway_recon": "733ff0055daf4ed600ec7f7a96b70f53c2ce26fa83a8fc640b1cb319263d64f8",
+        "orders": "57aaa6fccfae45bd10b8c0d2aec35239714ed3e48390635f423895470093b066"
+      },
+      "checks": {
+        "bank": true,
+        "gateway_recon": true,
+        "orders": true
+      },
+      "evaluated_input_hashes": {
+        "bank": "210c4f005da1e1333065221984278fac63e611268e83f7ee1bafd8279f8948ee",
+        "gateway_recon": "733ff0055daf4ed600ec7f7a96b70f53c2ce26fa83a8fc640b1cb319263d64f8",
+        "orders": "57aaa6fccfae45bd10b8c0d2aec35239714ed3e48390635f423895470093b066"
+      }
+    },
+    "method": "independent_regeneration",
+    "run_manifest": {
+      "compared_keys": [
+        "expectations",
+        "generator_version",
+        "injected",
+        "input_hashes",
+        "match_facts",
+        "profile",
+        "seed",
+        "source_counts",
+        "structural",
+        "tier_labels"
+      ],
+      "matches_canonical": true
+    },
+    "status": "PASS"
   },
   "workload_coverage": {
     "plane_a_orders": {

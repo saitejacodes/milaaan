@@ -75,7 +75,7 @@ class EvaluatorIntegrityTests(unittest.TestCase):
                 writer.writerows(rows)
             database = run / "m.db"
             run_pipeline(run, database, "mock")
-            with self.assertRaisesRegex(RuntimeError, "manifest input hashes"):
+            with self.assertRaisesRegex(RuntimeError, "not the canonical dataset"):
                 evaluate_run(run, database, run, "clean")
 
     def test_unexpected_exception_fails_precision_gate(self) -> None:

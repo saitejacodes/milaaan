@@ -1,4 +1,15 @@
-"""Evaluation entry point and fail-fast gate bundles."""
+"""Evaluation entry point, truth binding, and fail-fast gate bundles.
+
+Order matters here and is a control, not a style choice:
+
+1. Truth is reconstructed independently and bound to the evaluated run.
+2. Metrics are computed against that reconstructed truth.
+3. The gate runs.
+4. Only a passing gate publishes ``functional_metrics.json``.
+
+Step 4 is why no downstream artefact -- report, dashboard, agent tool -- can
+quote a number produced by a run that failed its own controls.
+"""
 
 from __future__ import annotations
 
@@ -7,9 +18,14 @@ from pathlib import Path
 
 from milaan.db import connect
 from milaan.evalx.metrics import compute_metrics
+from milaan.evalx.truth import TruthIntegrityError, establish_truth
 
 
-def _gate(metrics: dict, gate: str) -> None:
+METRICS_FILENAME = "functional_metrics.json"
+REJECTED_FILENAME = "functional_metrics.rejected.json"
+
+
+def _gate(metrics: dict, gate: str) -> list[str]:
     a = metrics["planes"]["A"]["auto_match"]["rate"]
     b = metrics["planes"]["B"]["auto_match"]["rate"]
     false = metrics["false_match_count"]
@@ -45,29 +61,61 @@ def _gate(metrics: dict, gate: str) -> None:
         )
     if not input_integrity:
         failures.append("manifest input hashes do not match evaluated source files")
+    if metrics["truth_integrity"]["status"] != "PASS":
+        failures.append("reconstructed truth could not be bound to this run")
     if false:
         failures.append(f"false matches {false} != 0")
-    if failures:
-        raise RuntimeError("gate failed: " + "; ".join(failures))
+    return failures
+
+
+def _write(path: Path, payload: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+
+
+def _reject(out_dir: Path, gate: str, failures: list[str], metrics: dict | None) -> None:
+    """Publish nothing quotable after a failed gate.
+
+    The rejected evidence is kept under a distinct filename so a failure can be
+    investigated, while ``functional_metrics.json`` -- the file every consumer
+    reads -- is removed rather than left holding stale passing numbers.
+    """
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / METRICS_FILENAME).unlink(missing_ok=True)
+    _write(out_dir / REJECTED_FILENAME, {
+        "gate": {"name": gate, "status": "FAIL", "failures": failures},
+        "metrics": metrics,
+        "note": "Rejected evidence. No published metric may be quoted from this run.",
+    })
+    raise RuntimeError("gate failed: " + "; ".join(failures))
 
 
 def evaluate_run(run_dir: Path, database_path: Path, out_dir: Path, gate: str) -> str:
-    manifest = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
     conn = connect(database_path)
     try:
+        try:
+            manifest, truth_report = establish_truth(run_dir, conn)
+        except TruthIntegrityError as exc:
+            _reject(out_dir, gate, [f"truth integrity: {exc}"], None)
+            raise  # unreachable; _reject always raises
         metrics = compute_metrics(conn, manifest)
     finally:
         conn.close()
-    out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / "functional_metrics.json").write_text(
-        json.dumps(metrics, sort_keys=True, indent=2) + "\n", encoding="utf-8"
-    )
-    _gate(metrics, gate)
+
+    metrics["truth_integrity"] = truth_report
+    failures = _gate(metrics, gate)
+    if failures:
+        _reject(out_dir, gate, failures, metrics)
+    metrics["gate"] = {"name": gate, "status": "PASS", "failures": []}
+    (out_dir / REJECTED_FILENAME).unlink(missing_ok=True)
+    _write(out_dir / METRICS_FILENAME, metrics)
+
     a, b = metrics["planes"]["A"]["auto_match"], metrics["planes"]["B"]["auto_match"]
     exc = metrics["exceptions"]["recall"]
     conservation = metrics["source_record_conservation"]
     return (
-        f"gate={gate} PASS | Plane-A {a['numerator']}/{a['denominator']} ({a['rate']:.2%}) | "
+        f"gate={gate} PASS | truth=INDEPENDENTLY-REBUILT | "
+        f"Plane-A {a['numerator']}/{a['denominator']} ({a['rate']:.2%}) | "
         f"Plane-B {b['numerator']}/{b['denominator']} ({b['rate']:.2%}) | "
         f"false={metrics['false_match_count']} | exceptions {exc['numerator']}/{exc['denominator']} | "
         f"source-conservation {conservation['numerator']}/{conservation['denominator']}"

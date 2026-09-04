@@ -7,6 +7,8 @@ import sqlite3
 from collections import Counter, defaultdict
 from typing import Any
 
+from milaan.evalx.truth import require_complete_truth
+
 
 def _ratio(numerator: int, denominator: int) -> dict[str, int | float]:
     return {
@@ -145,21 +147,27 @@ def compute_metrics(conn: sqlite3.Connection, manifest: dict[str, Any]) -> dict[
             members_by_batch[row["settlement_id"]].add(txn_id)
 
     actual_by_plane = {plane: _actual_matches(conn, plane) for plane in ("A", "B")}
+    # Mandatory truth contract. Missing or partial facts fail closed here rather
+    # than degrading to a weaker identifier-only comparison.
+    require_complete_truth(manifest)
     tier_labels = manifest["tier_labels"]
-    match_facts = manifest.get("match_facts", {})
+    match_facts = manifest["match_facts"]
     planes: dict[str, Any] = {}
     all_expected_entities: set[str] = set()
     actual_bucket_counts: Counter[str] = Counter()
 
     for plane, key in (("A", "plane_a_matches"), ("B", "plane_b_matches")):
         expected = {tuple(pair) for pair in manifest["expectations"][key]}
-        facts = match_facts.get(plane, {})
+        facts = match_facts[plane]
         correct_pairs: set[tuple[str, str]] = set()
         correct_match_ids: set[int] = set()
         for item in actual_by_plane[plane]:
             pair = item["pair"]
             valid = pair in expected
-            if valid and facts:
+            if valid:
+                # Amount, membership and identifier facts are always checked. A
+                # pair whose money no longer equals the canonical money is a
+                # false match, never a correct one.
                 if plane == "A":
                     payment_id, order_id = pair
                     fact = facts.get(payment_id)
@@ -196,6 +204,7 @@ def compute_metrics(conn: sqlite3.Connection, manifest: dict[str, Any]) -> dict[
         false_count = found_count - len(correct_match_ids)
         planes[plane] = {
             "auto_match": _ratio(len(correct_pairs), len(expected)),
+            "true_match_count": len(correct_match_ids),
             "expected_match_recall": _ratio(len(correct_pairs), len(expected)),
             "match_precision": _ratio(len(correct_match_ids), found_count),
             "found_count": found_count,
@@ -299,7 +308,7 @@ def compute_metrics(conn: sqlite3.Connection, manifest: dict[str, Any]) -> dict[
     }
 
     return {
-        "schema_version": "1.3.0",
+        "schema_version": "2.0.0",
         "seed": int(manifest["seed"]),
         "profile": manifest["profile"],
         "generator_version": manifest["generator_version"],
@@ -318,6 +327,9 @@ def compute_metrics(conn: sqlite3.Connection, manifest: dict[str, Any]) -> dict[
             "precision": _ratio(len(matched_actual), len(actual_exceptions)),
             "actual_count": len(actual_exceptions),
             "expected_count": len(expected_exceptions),
+            "correct_count": len(matched_actual),
+            "false_count": len(actual_exceptions) - len(matched_actual),
+            "missed_count": len(expected_exceptions) - recalled,
         },
         "benchmark_entity_completeness": _ratio(exactly_one, len(all_expected_entities)),
         "completeness": _ratio(exactly_one, len(all_expected_entities)),

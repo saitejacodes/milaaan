@@ -34,6 +34,10 @@ class MetricsUnitTests(unittest.TestCase):
                     "plane_b_matches": [["setl_right", "bank_1"]],
                     "exceptions": [],
                 },
+                "match_facts": {"A": {}, "B": {"setl_right": {
+                    "bank_line_id": "bank_1", "member_txn_ids": ["t1"],
+                    "batch_amount_paise": 100, "bank_credit_paise": 100,
+                }}},
             }
             metrics = compute_metrics(conn, manifest)
             conn.close()

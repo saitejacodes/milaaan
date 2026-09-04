@@ -9,7 +9,7 @@ import random
 from pathlib import Path
 from typing import Any
 
-from milaan.config import load_fees, load_timing
+from milaan.config import load_fees, load_timing, repository_root
 from milaan.generator.inject import apply_injections
 from milaan.generator.manifest import GENERATOR_VERSION, build_manifest
 from milaan.generator.world import build_world
@@ -65,9 +65,16 @@ def generate_to_directory(records: int, seed: int, profile: str, out: Path) -> s
         "bank": _sha256(out / "bank.csv"),
     }
     _write_json(out / "manifest.json", manifest)
+    # run_meta.json carries only immutable generation inputs. The evaluator
+    # regenerates canonical data and truth from exactly these values, so nothing
+    # here is an answer key that could be edited to flatter a run.
     _write_json(out / "run_meta.json", {
         "seed": seed, "profile": profile, "records": records,
         "generator_version": GENERATOR_VERSION,
+        "config_hashes": {
+            "fees": _sha256(repository_root() / "config" / "fees.toml"),
+            "timing": _sha256(repository_root() / "config" / "timing.toml"),
+        },
     })
     return (
         f"generated {records} orders, {len(world.txns)} recon rows, "
