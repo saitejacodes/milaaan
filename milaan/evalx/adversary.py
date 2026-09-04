@@ -1038,6 +1038,90 @@ def fabricated_match(bench: Bench) -> None:
     bench.expect_evaluation_failure()
 
 
+@attack("Memberless match row inserted into the ledger", "evaluator_integrity")
+def memberless_match(bench: Bench) -> None:
+    """A match row with no members must not be invisible to the evaluator."""
+    bench.reconcile()
+    with sqlite3.connect(bench.dir / "m.db") as conn:
+        run_id = conn.execute("SELECT run_id FROM runs").fetchone()[0]
+        conn.execute(
+            """INSERT INTO matches(run_id,plane,kind,tier,right_id,amount_diff_paise,
+               date_gap_bd,confidence,evidence,created_at)
+               VALUES(?, 'B','BATCH_BANK','B0','bank_probe',0,0,1.0,'{}','probe')""",
+            (run_id,))
+    message = bench.expect_evaluation_failure()
+    require("member shape" in message, f"unexpected rejection reason: {message}")
+
+
+@attack("Wrong-kind member attached to a match", "finance_safety")
+def wrong_member_kind(bench: Bench) -> None:
+    """The schema itself must refuse an order recorded as a Plane-B member."""
+    bench.reconcile()
+    conn = sqlite3.connect(bench.dir / "m.db")
+    try:
+        conn.execute("PRAGMA foreign_keys=ON")
+        run_id = conn.execute("SELECT run_id FROM runs").fetchone()[0]
+        cursor = conn.execute(
+            """INSERT INTO matches(run_id,plane,kind,tier,right_id,amount_diff_paise,
+               date_gap_bd,confidence,evidence,created_at)
+               VALUES(?, 'B','BATCH_BANK','B0','bank_probe',0,0,1.0,'{}','probe')""",
+            (run_id,))
+        match_id = cursor.lastrowid
+        try:
+            conn.execute("INSERT INTO match_members VALUES(?,?,?,?,?)",
+                         (match_id, run_id, "B", "ORDER", "order_000000"))
+        except sqlite3.IntegrityError:
+            return
+        raise AttackFailed("the ledger accepted an ORDER as a settlement-plane member")
+    finally:
+        conn.rollback()
+        conn.close()
+
+
+@attack("Unknown plane written into the ledger", "finance_safety")
+def unknown_plane(bench: Bench) -> None:
+    bench.reconcile()
+    conn = sqlite3.connect(bench.dir / "m.db")
+    try:
+        conn.execute("PRAGMA foreign_keys=ON")
+        run_id = conn.execute("SELECT run_id FROM runs").fetchone()[0]
+        try:
+            conn.execute(
+                """INSERT INTO matches(run_id,plane,kind,tier,right_id,amount_diff_paise,
+                   date_gap_bd,confidence,evidence,created_at)
+                   VALUES(?, 'C','BATCH_BANK','B0','x',0,0,1.0,'{}','probe')""",
+                (run_id,))
+        except sqlite3.IntegrityError:
+            return
+        raise AttackFailed("the ledger accepted a match on an unknown plane")
+    finally:
+        conn.rollback()
+        conn.close()
+
+
+@attack("Negative bank credit")
+def negative_bank_credit(bench: Bench) -> None:
+    bench.edit("bank.csv", lambda rows: rows[0].update({"credit_paise": "-500000"}))
+    probe = bench.reconcile()
+    probe.assert_no_unsafe_match()
+
+
+@attack("Zero-width space hidden inside a bank UTR")
+def zero_width_utr(bench: Bench) -> None:
+    settlement_id, line_id = next(iter(bench.expected_b().items()))
+
+    def hide(rows: list[dict[str, str]]) -> None:
+        for row in rows:
+            if row["line_id"] == line_id:
+                reference = row["ref_no"]
+                row["narration"] = row["narration"].replace(
+                    reference, f"{reference[:4]}\u200b{reference[4:]}"
+                )
+    bench.edit("bank.csv", hide)
+    probe = bench.reconcile()
+    probe.assert_no_unsafe_match()
+
+
 # ----------------------------------------------------------------- runner
 
 

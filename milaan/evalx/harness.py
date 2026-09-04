@@ -108,10 +108,12 @@ def evaluate_run(run_dir: Path, database_path: Path, out_dir: Path, gate: str) -
     try:
         try:
             manifest, truth_report = establish_truth(run_dir, conn)
+            metrics = compute_metrics(conn, manifest)
         except TruthIntegrityError as exc:
-            _reject(out_dir, gate, [f"truth integrity: {exc}"], None)
+            # Covers both a truth boundary that cannot be established and a
+            # ledger whose shape the evaluator refuses to interpret.
+            _reject(out_dir, gate, [f"integrity: {exc}"], None)
             raise  # unreachable; _reject always raises
-        metrics = compute_metrics(conn, manifest)
     finally:
         conn.close()
 

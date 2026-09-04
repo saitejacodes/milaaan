@@ -849,7 +849,7 @@
     "refusals": 16,
     "unsafe_executions": 0
   },
-  "measured_at": "2026-09-04T05:12:39.893022+00:00",
+  "measured_at": "2026-09-04T08:34:52.641584+00:00",
   "mode": "mock",
   "platform": "macOS-26.6.2-arm64-arm-64bit",
   "provider": {

@@ -49,15 +49,23 @@ CREATE TABLE settlement_batches(
   run_id TEXT NOT NULL REFERENCES runs(run_id));
 
 CREATE TABLE matches(
-  match_id INTEGER PRIMARY KEY, run_id TEXT NOT NULL REFERENCES runs(run_id), plane TEXT NOT NULL,
+  match_id INTEGER PRIMARY KEY, run_id TEXT NOT NULL REFERENCES runs(run_id),
+  plane TEXT NOT NULL CHECK(plane IN ('A','B')),
   kind TEXT NOT NULL, tier TEXT NOT NULL, right_id TEXT NOT NULL,
   amount_diff_paise INTEGER NOT NULL, date_gap_bd INTEGER NOT NULL,
   confidence REAL NOT NULL, evidence TEXT NOT NULL, created_at TEXT NOT NULL,
   UNIQUE(match_id, run_id, plane));
 
+-- Exclusivity is enforced by UNIQUE; the CHECK stops a member of the wrong kind
+-- being attached to a plane at all, so a bank line can never be recorded as an
+-- order and the evaluator can rely on the shape it reads back.
 CREATE TABLE match_members(
-  match_id INTEGER NOT NULL, run_id TEXT NOT NULL, plane TEXT NOT NULL,
-  entity_type TEXT NOT NULL, entity_id TEXT NOT NULL,
+  match_id INTEGER NOT NULL, run_id TEXT NOT NULL,
+  plane TEXT NOT NULL CHECK(plane IN ('A','B')),
+  entity_type TEXT NOT NULL CHECK(entity_type IN ('ORDER','TXN','BATCH','BANK_LINE')),
+  entity_id TEXT NOT NULL,
+  CHECK((plane = 'A' AND entity_type IN ('ORDER','TXN'))
+     OR (plane = 'B' AND entity_type IN ('BATCH','BANK_LINE'))),
   UNIQUE(run_id, plane, entity_type, entity_id),
   FOREIGN KEY(match_id, run_id, plane) REFERENCES matches(match_id, run_id, plane));
 

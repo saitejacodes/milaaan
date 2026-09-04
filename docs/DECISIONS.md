@@ -177,3 +177,18 @@ of a 708 ms reconciliation was commit overhead for 1,154 matches. Batching took
 the 1,200-order run to 86 ms. It also strengthens the guarantee: a plane is now
 written whole or not at all, while `UNIQUE(run_id, plane, entity_type,
 entity_id)` still enforces exclusivity on every individual member row.
+
+## ADR-016 — A match must be structurally complete, and the schema says so
+
+**Decision:** `matches.plane` and `match_members.entity_type` carry `CHECK`
+constraints, including a cross-check that Plane A holds only `ORDER`/`TXN`
+members and Plane B only `BATCH`/`BANK_LINE`. The evaluator reads every match
+row -- not an inner join against members -- and refuses to score a run in which
+any match does not claim exactly one left and one right record.
+
+**Why:** Found by hostile probing. A `matches` row with no members was silently
+skipped by the evaluator's inner join: the ledger held a match the metrics could
+not see. Separately, attaching a member of the wrong kind crashed the evaluator
+with an `IndexError` instead of failing closed with an explanation. Both are now
+refused -- the first kind at evaluation, the second by the database itself -- and
+both are registered adversarial attacks.

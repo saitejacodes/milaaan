@@ -7,7 +7,7 @@ import sqlite3
 from collections import Counter, defaultdict
 from typing import Any
 
-from milaan.evalx.truth import require_complete_truth
+from milaan.evalx.truth import TruthIntegrityError, require_complete_truth
 
 
 def _ratio(numerator: int, denominator: int) -> dict[str, int | float]:
@@ -18,32 +18,45 @@ def _ratio(numerator: int, denominator: int) -> dict[str, int | float]:
     }
 
 
+# A match is a claim about exactly two records. Reading the ledger with an inner
+# join would silently skip a match row that has no members at all, so every match
+# row is read first and its member shape is then required to be complete.
+PLANE_MEMBER_TYPES = {"A": ("TXN", "ORDER"), "B": ("BATCH", "BANK_LINE")}
+
+
 def _actual_matches(conn: sqlite3.Connection, plane: str) -> list[dict[str, Any]]:
-    rows = conn.execute(
-        """SELECT m.match_id,m.amount_diff_paise,m.date_gap_bd,m.evidence,
-                  mm.entity_type,mm.entity_id
-           FROM matches m JOIN match_members mm ON mm.match_id=m.match_id
-           WHERE m.plane=? ORDER BY m.match_id,mm.entity_type,mm.entity_id""",
+    match_rows = conn.execute(
+        """SELECT match_id,amount_diff_paise,date_gap_bd,evidence
+           FROM matches WHERE plane=? ORDER BY match_id""",
         (plane,),
     ).fetchall()
-    grouped: dict[int, dict[str, Any]] = {}
-    for row in rows:
-        match = grouped.setdefault(int(row["match_id"]), {
-            "match_id": int(row["match_id"]),
+    members: dict[int, dict[str, list[str]]] = defaultdict(lambda: defaultdict(list))
+    for row in conn.execute(
+        """SELECT match_id,entity_type,entity_id FROM match_members
+           WHERE plane=? ORDER BY match_id,entity_type,entity_id""",
+        (plane,),
+    ):
+        members[int(row["match_id"])][row["entity_type"]].append(row["entity_id"])
+
+    left, right = PLANE_MEMBER_TYPES[plane]
+    expected_shape = {left: 1, right: 1}
+    actual: list[dict[str, Any]] = []
+    for row in match_rows:
+        match_id = int(row["match_id"])
+        group = members.get(match_id, {})
+        shape = {entity_type: len(ids) for entity_type, ids in group.items()}
+        if shape != expected_shape:
+            raise TruthIntegrityError(
+                f"match {match_id} on plane {plane} has member shape {shape}; a match "
+                f"must claim exactly one {left} and one {right}"
+            )
+        actual.append({
+            "match_id": match_id,
             "amount_diff_paise": int(row["amount_diff_paise"]),
             "date_gap_bd": int(row["date_gap_bd"]),
             "evidence": json.loads(row["evidence"]),
-            "members": defaultdict(list),
+            "pair": (group[left][0], group[right][0]),
         })
-        match["members"][row["entity_type"]].append(row["entity_id"])
-    actual: list[dict[str, Any]] = []
-    for match in grouped.values():
-        members = match.pop("members")
-        if plane == "A":
-            match["pair"] = (members["TXN"][0], members["ORDER"][0])
-        else:
-            match["pair"] = (members["BATCH"][0], members["BANK_LINE"][0])
-        actual.append(match)
     return actual
 
 

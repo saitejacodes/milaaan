@@ -64,7 +64,7 @@ seconds and **every number it prints is produced by that execution**.
 | Command | What it does |
 |---|---|
 | `make judge` | One-command verification. Regenerates and proves everything it prints. |
-| `make adversarial` | 59 hostile-input attacks printed as a scorecard. |
+| `make adversarial` | 64 hostile-input attacks printed as a scorecard. |
 | `make benchmark` | Throughput sweep: 5 dataset sizes × 3 repetitions, with full provenance. |
 | `make demo` | Generate → reconcile → evaluate → agent suite → report. |
 | `make dashboard` | Streamlit operator console for a completed run. |
@@ -155,6 +155,10 @@ reconciliation decision.
 `UNIQUE(run_id, plane, entity_type, entity_id)` on match members. An order, a
 payment, a settlement or a bank credit that is already consumed cannot be
 consumed again, and that is a schema constraint rather than an in-memory set.
+`CHECK` constraints additionally refuse a match on an unknown plane, and refuse
+an order to be recorded as a settlement-plane member. The evaluator then
+requires every match row to claim exactly one left and one right record — a
+match row with no members at all is a rejection, not an invisible row.
 
 **A tainted settlement never matches.** If any member of a batch is rejected
 during ingestion — broken fee arithmetic, an unsupported transaction type, a
@@ -375,19 +379,22 @@ python -m milaan.cli agent-eval --run data/judge --db data/judge/milaan.db \
 make adversarial
 ```
 
-59 attacks against a freshly generated dataset, in three families:
+64 attacks against a freshly generated dataset, in three families:
 
-- **Financial safety** (44) — duplicate identifiers, one order claiming two
+- **Financial safety** (48) — duplicate identifiers, one order claiming two
   payments, payments before their orders, bank credits outside the window,
   unsupported transaction types, malformed and alphabetic and decimal amounts,
-  invalid fee/GST/net arithmetic, tainted batches whose survivors exactly equal
-  the credit, deleted and injected settlement members, altered settlement and
-  bank amounts, missing and inconsistent processing timestamps, UTR conflicts,
-  duplicate bank lines and UTRs, amount/date ambiguity, orphan refunds and
-  chargebacks, and database-enforced entity reuse.
-- **Evaluator integrity** (9) — tampered inputs, tampered truth, deleted
+  negative and absurd amounts, invalid fee/GST/net arithmetic, tainted batches
+  whose survivors exactly equal the credit, deleted and injected settlement
+  members, altered settlement and bank amounts, missing and inconsistent
+  processing timestamps, UTR conflicts, duplicate bank lines and UTRs, a
+  zero-width space hidden inside a UTR, amount/date ambiguity, orphan refunds
+  and chargebacks, database-enforced entity reuse, a wrong-kind member attached
+  to a match, and a match written on an unknown plane.
+- **Evaluator integrity** (10) — tampered inputs, tampered truth, deleted
   `match_facts`, forged hashes, edited database rows, inflated and suppressed
-  exceptions, duplicate exception scopes, fabricated matches.
+  exceptions, duplicate exception scopes, fabricated matches, and a memberless
+  match row.
 - **AI authority** (6) — write tools, unknown tools, malformed model output,
   prompt injection, contradictory prose, and an accounting-state fingerprint.
 

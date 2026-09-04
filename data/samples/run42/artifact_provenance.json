@@ -16,7 +16,7 @@
     "python_implementation": "CPython",
     "python_version": "3.12.13"
   },
-  "generated_at": "2026-09-04T10:42:40+0530",
+  "generated_at": "2026-09-04T14:04:52+0530",
   "generation_inputs": {
     "config_hashes": {
       "fees": "32c5a294b09a72d63527b7a0428abb76588c6e0661cc0d44af3aa44c388103cb",
@@ -28,7 +28,7 @@
     "seed": 42
   },
   "generator_version": "1.3.0",
-  "git_sha": "e35712bf8a53e9950cd3ca000302f22af4b1bf22",
+  "git_sha": "d1554b59047654176fc1efaa41afa67e961496a5",
   "input_hashes": {
     "bank": "210c4f005da1e1333065221984278fac63e611268e83f7ee1bafd8279f8948ee",
     "fees": "32c5a294b09a72d63527b7a0428abb76588c6e0661cc0d44af3aa44c388103cb",
@@ -42,13 +42,13 @@
     "profile": "mixed",
     "seed": 42,
     "source_records": 2467,
-    "source_records_per_second": 32038.96,
+    "source_records_per_second": 29369.05,
     "stage_ms": {
-      "ingest_aggregate": 15,
-      "plane_a": 29,
+      "ingest_aggregate": 16,
+      "plane_a": 35,
       "plane_b": 4
     },
-    "wall_ms": 77
+    "wall_ms": 84
   },
   "schema_version": "1.0.0",
   "truth_integrity": {
