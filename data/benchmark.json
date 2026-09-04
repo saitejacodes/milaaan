@@ -1,49 +1,876 @@
 {
-  "measurement": "end-to-end reconciliation wall time; generation and evaluation excluded",
+  "environment": {
+    "git_sha": "18846f095f7b053a702e667ae8ede7ed8a1b00c5",
+    "machine": "arm64",
+    "measured_at": "2026-09-04T10:26:01+0530",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "processor": "arm",
+    "python_implementation": "CPython",
+    "python_version": "3.12.13"
+  },
+  "measurement": {
+    "also_recorded": "generate_ms, evaluate_ms and total_ms per repetition",
+    "excluded_from_throughput": "synthetic data generation; evaluation; reporting",
+    "reported_throughput": "reconciliation engine only: ingest, normalise, aggregate, match Plane A and Plane B, triage exceptions, persist to SQLite",
+    "statistic": "median of all repetitions; min and max also reported"
+  },
+  "note": "canonical sweep",
   "profile": "mixed",
-  "results": [
+  "raw_runs": [
     {
-      "max_source_records_per_second": 10166.67,
-      "median_source_records": 125,
-      "median_source_records_per_second": 9769.23,
-      "min_source_records_per_second": 9615.38,
-      "orders": 50,
-      "repetitions": 3
+      "amount_delta_paise": 0,
+      "bank_rows": 23,
+      "evaluate_ms": 8,
+      "exception_precision": 1.0,
+      "exception_recall": 1.0,
+      "false_match_count": 0,
+      "gate": {
+        "message": "gate=mixed PASS | truth=INDEPENDENTLY-REBUILT | Plane-A 49/49 (100.00%) | Plane-B 16/16 (100.00%) | false=0 | exceptions 6/6 | source-conservation 127/127",
+        "name": "mixed",
+        "status": "PASS"
+      },
+      "gateway_recon_rows": 54,
+      "generate_ms": 4,
+      "input_hashes": {
+        "bank": "652aa2c8de057b5309f5382e13351cacbaf3a94c13d8778887a6b3f70c2927f5",
+        "gateway_recon": "306f8de25554c9c47f6e7a4d60b1e71ad2cffebd96e066d8205347ee50e91c39",
+        "orders": "d24920298cbe3986da9f1810273af722f0b68342a02ae6b5c2d66ab77b7e4e05"
+      },
+      "orders_rows": 50,
+      "physical_source_records": 127,
+      "plane_a": {
+        "expected": 49,
+        "found": 49,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "plane_b": {
+        "expected": 16,
+        "found": 16,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "profile": "mixed",
+      "reconcile_records_per_second": 3735.29,
+      "reconcile_stage_ms": {
+        "ingest_aggregate": 1,
+        "plane_a": 2,
+        "plane_b": 2
+      },
+      "reconcile_wall_ms": 34,
+      "repetition": 0,
+      "requested_orders": 50,
+      "seed": 42,
+      "source_conservation": 1.0,
+      "total_ms": 46,
+      "truth_integrity": "PASS"
     },
     {
-      "max_source_records_per_second": 16730.77,
-      "median_source_records": 435,
-      "median_source_records_per_second": 16148.15,
-      "min_source_records_per_second": 16074.07,
-      "orders": 200,
-      "repetitions": 3
+      "amount_delta_paise": 0,
+      "bank_rows": 22,
+      "evaluate_ms": 8,
+      "exception_precision": 1.0,
+      "exception_recall": 1.0,
+      "false_match_count": 0,
+      "gate": {
+        "message": "gate=mixed PASS | truth=INDEPENDENTLY-REBUILT | Plane-A 48/48 (100.00%) | Plane-B 15/15 (100.00%) | false=0 | exceptions 6/6 | source-conservation 125/125",
+        "name": "mixed",
+        "status": "PASS"
+      },
+      "gateway_recon_rows": 53,
+      "generate_ms": 3,
+      "input_hashes": {
+        "bank": "5093bf6b94136afb4e219b5217771e0340ce286185f73e68bb77001c4e88ea1c",
+        "gateway_recon": "e97e23b4076351ac51d008480b074b9e4de9cda5753ce4ca46d3158bf4955381",
+        "orders": "11a7d6562cdc544b2cc45fd9165b7258fe5ebae6d8daecd4108b9464b222f01f"
+      },
+      "orders_rows": 50,
+      "physical_source_records": 125,
+      "plane_a": {
+        "expected": 48,
+        "found": 48,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "plane_b": {
+        "expected": 15,
+        "found": 15,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "profile": "mixed",
+      "reconcile_records_per_second": 5000.0,
+      "reconcile_stage_ms": {
+        "ingest_aggregate": 1,
+        "plane_a": 2,
+        "plane_b": 2
+      },
+      "reconcile_wall_ms": 25,
+      "repetition": 1,
+      "requested_orders": 50,
+      "seed": 43,
+      "source_conservation": 1.0,
+      "total_ms": 36,
+      "truth_integrity": "PASS"
     },
     {
-      "max_source_records_per_second": 20754.24,
-      "median_source_records": 2464,
-      "median_source_records_per_second": 20363.64,
-      "min_source_records_per_second": 18832.06,
-      "orders": 1200,
-      "repetitions": 3
+      "amount_delta_paise": 0,
+      "bank_rows": 20,
+      "evaluate_ms": 8,
+      "exception_precision": 1.0,
+      "exception_recall": 1.0,
+      "false_match_count": 0,
+      "gate": {
+        "message": "gate=mixed PASS | truth=INDEPENDENTLY-REBUILT | Plane-A 47/47 (100.00%) | Plane-B 13/13 (100.00%) | false=0 | exceptions 6/6 | source-conservation 122/122",
+        "name": "mixed",
+        "status": "PASS"
+      },
+      "gateway_recon_rows": 52,
+      "generate_ms": 3,
+      "input_hashes": {
+        "bank": "3e17c3ed93f46a59f5af41cd8e4eddd3dcf8f5c859f047a9bb8a94caa2a74cb3",
+        "gateway_recon": "502f2706be66e449309fa7c1cf04dba5053530cff8dec03e874f75056d3ac506",
+        "orders": "11ddb45a49e96fe312513b3c955c9f266a29407909181c8fa16e19dee5fd72b1"
+      },
+      "orders_rows": 50,
+      "physical_source_records": 122,
+      "plane_a": {
+        "expected": 47,
+        "found": 47,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "plane_b": {
+        "expected": 13,
+        "found": 13,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "profile": "mixed",
+      "reconcile_records_per_second": 5083.33,
+      "reconcile_stage_ms": {
+        "ingest_aggregate": 1,
+        "plane_a": 2,
+        "plane_b": 2
+      },
+      "reconcile_wall_ms": 24,
+      "repetition": 2,
+      "requested_orders": 50,
+      "seed": 44,
+      "source_conservation": 1.0,
+      "total_ms": 35,
+      "truth_integrity": "PASS"
     },
     {
-      "max_source_records_per_second": 23847.42,
-      "median_source_records": 10159,
-      "median_source_records_per_second": 22959.09,
-      "min_source_records_per_second": 21004.13,
-      "orders": 5000,
-      "repetitions": 3
+      "amount_delta_paise": 0,
+      "bank_rows": 25,
+      "evaluate_ms": 16,
+      "exception_precision": 1.0,
+      "exception_recall": 1.0,
+      "false_match_count": 0,
+      "gate": {
+        "message": "gate=mixed PASS | truth=INDEPENDENTLY-REBUILT | Plane-A 194/194 (100.00%) | Plane-B 18/18 (100.00%) | false=0 | exceptions 6/6 | source-conservation 434/434",
+        "name": "mixed",
+        "status": "PASS"
+      },
+      "gateway_recon_rows": 209,
+      "generate_ms": 7,
+      "input_hashes": {
+        "bank": "9280d3cce9a8401bc2438311c4696079d615d35536aa922f333089ca47e7279d",
+        "gateway_recon": "3224e2adbb2526352cc4391645e619f8a9c9979341f4d6ca2fb31fd6ab1959cd",
+        "orders": "14d0835102cc06841aef6c58f31868b7bfe5338b1115f64a0811b8110f553dcc"
+      },
+      "orders_rows": 200,
+      "physical_source_records": 434,
+      "plane_a": {
+        "expected": 194,
+        "found": 194,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "plane_b": {
+        "expected": 18,
+        "found": 18,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "profile": "mixed",
+      "reconcile_records_per_second": 14000.0,
+      "reconcile_stage_ms": {
+        "ingest_aggregate": 3,
+        "plane_a": 5,
+        "plane_b": 3
+      },
+      "reconcile_wall_ms": 31,
+      "repetition": 0,
+      "requested_orders": 200,
+      "seed": 42,
+      "source_conservation": 1.0,
+      "total_ms": 54,
+      "truth_integrity": "PASS"
     },
     {
-      "max_source_records_per_second": 21865.01,
-      "median_source_records": 20291,
-      "median_source_records_per_second": 20875.51,
-      "min_source_records_per_second": 20834.87,
-      "orders": 10000,
-      "repetitions": 3
+      "amount_delta_paise": 0,
+      "bank_rows": 26,
+      "evaluate_ms": 16,
+      "exception_precision": 1.0,
+      "exception_recall": 1.0,
+      "false_match_count": 0,
+      "gate": {
+        "message": "gate=mixed PASS | truth=INDEPENDENTLY-REBUILT | Plane-A 195/195 (100.00%) | Plane-B 19/19 (100.00%) | false=0 | exceptions 6/6 | source-conservation 435/435",
+        "name": "mixed",
+        "status": "PASS"
+      },
+      "gateway_recon_rows": 209,
+      "generate_ms": 7,
+      "input_hashes": {
+        "bank": "f9662aa1c86add953a22128a9d27ebaa4ad99fe7876860ab50c4c532a4f8cfef",
+        "gateway_recon": "37c6a3eea72c487dc14659d0ec17c290817518df1bb4148022d6c14638228341",
+        "orders": "c8da38c11809f4dc79d314d93d83c289cfb08c43823624bf3515d73892f605f3"
+      },
+      "orders_rows": 200,
+      "physical_source_records": 435,
+      "plane_a": {
+        "expected": 195,
+        "found": 195,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "plane_b": {
+        "expected": 19,
+        "found": 19,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "profile": "mixed",
+      "reconcile_records_per_second": 12794.12,
+      "reconcile_stage_ms": {
+        "ingest_aggregate": 3,
+        "plane_a": 5,
+        "plane_b": 3
+      },
+      "reconcile_wall_ms": 34,
+      "repetition": 1,
+      "requested_orders": 200,
+      "seed": 43,
+      "source_conservation": 1.0,
+      "total_ms": 57,
+      "truth_integrity": "PASS"
+    },
+    {
+      "amount_delta_paise": 0,
+      "bank_rows": 26,
+      "evaluate_ms": 16,
+      "exception_precision": 1.0,
+      "exception_recall": 1.0,
+      "false_match_count": 0,
+      "gate": {
+        "message": "gate=mixed PASS | truth=INDEPENDENTLY-REBUILT | Plane-A 190/190 (100.00%) | Plane-B 19/19 (100.00%) | false=0 | exceptions 6/6 | source-conservation 436/436",
+        "name": "mixed",
+        "status": "PASS"
+      },
+      "gateway_recon_rows": 210,
+      "generate_ms": 7,
+      "input_hashes": {
+        "bank": "d03380fab91075a2ac5c2ced6e5e6ea589b5b481bd0ffb15dd839bb7b74c5585",
+        "gateway_recon": "020f65decf9682f8ca50a7917f5e2c3fd57c65a1988c2d8c6099f1d9d3739e31",
+        "orders": "89057e99b8c74536708d7bf71d4c85b19c72decfe5944460f16cdde14d4a0977"
+      },
+      "orders_rows": 200,
+      "physical_source_records": 436,
+      "plane_a": {
+        "expected": 190,
+        "found": 190,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "plane_b": {
+        "expected": 19,
+        "found": 19,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "profile": "mixed",
+      "reconcile_records_per_second": 13625.0,
+      "reconcile_stage_ms": {
+        "ingest_aggregate": 3,
+        "plane_a": 5,
+        "plane_b": 3
+      },
+      "reconcile_wall_ms": 32,
+      "repetition": 2,
+      "requested_orders": 200,
+      "seed": 44,
+      "source_conservation": 1.0,
+      "total_ms": 55,
+      "truth_integrity": "PASS"
+    },
+    {
+      "amount_delta_paise": 0,
+      "bank_rows": 28,
+      "evaluate_ms": 71,
+      "exception_precision": 1.0,
+      "exception_recall": 1.0,
+      "false_match_count": 0,
+      "gate": {
+        "message": "gate=mixed PASS | truth=INDEPENDENTLY-REBUILT | Plane-A 1154/1154 (100.00%) | Plane-B 21/21 (100.00%) | false=0 | exceptions 6/6 | source-conservation 2467/2467",
+        "name": "mixed",
+        "status": "PASS"
+      },
+      "gateway_recon_rows": 1239,
+      "generate_ms": 34,
+      "input_hashes": {
+        "bank": "210c4f005da1e1333065221984278fac63e611268e83f7ee1bafd8279f8948ee",
+        "gateway_recon": "733ff0055daf4ed600ec7f7a96b70f53c2ce26fa83a8fc640b1cb319263d64f8",
+        "orders": "57aaa6fccfae45bd10b8c0d2aec35239714ed3e48390635f423895470093b066"
+      },
+      "orders_rows": 1200,
+      "physical_source_records": 2467,
+      "plane_a": {
+        "expected": 1154,
+        "found": 1154,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "plane_b": {
+        "expected": 21,
+        "found": 21,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "profile": "mixed",
+      "reconcile_records_per_second": 33794.52,
+      "reconcile_stage_ms": {
+        "ingest_aggregate": 16,
+        "plane_a": 28,
+        "plane_b": 3
+      },
+      "reconcile_wall_ms": 73,
+      "repetition": 0,
+      "requested_orders": 1200,
+      "seed": 42,
+      "source_conservation": 1.0,
+      "total_ms": 178,
+      "truth_integrity": "PASS"
+    },
+    {
+      "amount_delta_paise": 0,
+      "bank_rows": 27,
+      "evaluate_ms": 73,
+      "exception_precision": 1.0,
+      "exception_recall": 1.0,
+      "false_match_count": 0,
+      "gate": {
+        "message": "gate=mixed PASS | truth=INDEPENDENTLY-REBUILT | Plane-A 1158/1158 (100.00%) | Plane-B 20/20 (100.00%) | false=0 | exceptions 6/6 | source-conservation 2464/2464",
+        "name": "mixed",
+        "status": "PASS"
+      },
+      "gateway_recon_rows": 1237,
+      "generate_ms": 34,
+      "input_hashes": {
+        "bank": "98744e2af008a76dbec99bbb5ddf975bea16a4dc2d361bff6862c01bcfdbde81",
+        "gateway_recon": "cc825808794ee75d1517bf34dbd73b40384420a61cb83f41ecda01c72bf9cbac",
+        "orders": "48dd2623fb424c5964b483946475397bf15a4b2e66aa65c90c9a6de3cf29a121"
+      },
+      "orders_rows": 1200,
+      "physical_source_records": 2464,
+      "plane_a": {
+        "expected": 1158,
+        "found": 1158,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "plane_b": {
+        "expected": 20,
+        "found": 20,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "profile": "mixed",
+      "reconcile_records_per_second": 33753.42,
+      "reconcile_stage_ms": {
+        "ingest_aggregate": 16,
+        "plane_a": 28,
+        "plane_b": 3
+      },
+      "reconcile_wall_ms": 73,
+      "repetition": 1,
+      "requested_orders": 1200,
+      "seed": 43,
+      "source_conservation": 1.0,
+      "total_ms": 180,
+      "truth_integrity": "PASS"
+    },
+    {
+      "amount_delta_paise": 0,
+      "bank_rows": 27,
+      "evaluate_ms": 71,
+      "exception_precision": 1.0,
+      "exception_recall": 1.0,
+      "false_match_count": 0,
+      "gate": {
+        "message": "gate=mixed PASS | truth=INDEPENDENTLY-REBUILT | Plane-A 1142/1142 (100.00%) | Plane-B 20/20 (100.00%) | false=0 | exceptions 6/6 | source-conservation 2449/2449",
+        "name": "mixed",
+        "status": "PASS"
+      },
+      "gateway_recon_rows": 1222,
+      "generate_ms": 33,
+      "input_hashes": {
+        "bank": "4244b90270597c82828f1d0ee1142b992fdc7d077cf54236603d746bbe91ace5",
+        "gateway_recon": "331b0189db058b58ed61e643ff3b0093764758ced25f82a3e59718777505c9c4",
+        "orders": "b8ab57310db18d5f6cfa1c83d3d836adfbd34e507aeb75793b23ac0ec0e59aa8"
+      },
+      "orders_rows": 1200,
+      "physical_source_records": 2449,
+      "plane_a": {
+        "expected": 1142,
+        "found": 1142,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "plane_b": {
+        "expected": 20,
+        "found": 20,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "profile": "mixed",
+      "reconcile_records_per_second": 32653.33,
+      "reconcile_stage_ms": {
+        "ingest_aggregate": 15,
+        "plane_a": 28,
+        "plane_b": 3
+      },
+      "reconcile_wall_ms": 75,
+      "repetition": 2,
+      "requested_orders": 1200,
+      "seed": 44,
+      "source_conservation": 1.0,
+      "total_ms": 179,
+      "truth_integrity": "PASS"
+    },
+    {
+      "amount_delta_paise": 0,
+      "bank_rows": 28,
+      "evaluate_ms": 287,
+      "exception_precision": 1.0,
+      "exception_recall": 1.0,
+      "false_match_count": 0,
+      "gate": {
+        "message": "gate=mixed PASS | truth=INDEPENDENTLY-REBUILT | Plane-A 4802/4802 (100.00%) | Plane-B 21/21 (100.00%) | false=0 | exceptions 6/6 | source-conservation 10166/10166",
+        "name": "mixed",
+        "status": "PASS"
+      },
+      "gateway_recon_rows": 5138,
+      "generate_ms": 134,
+      "input_hashes": {
+        "bank": "a63e130f46f22249c51054d477a9bc00ac95d3362fa1adf5431a21c59e06c0f7",
+        "gateway_recon": "abbaff20d932cd00d09c3466c9fbc89224ce95dc6d6c37e5ac4cc85164b0a681",
+        "orders": "49b8853a67166440e2491bfb03eb6af3b38d3be719e28f45b9ef3ff8a7234407"
+      },
+      "orders_rows": 5000,
+      "physical_source_records": 10166,
+      "plane_a": {
+        "expected": 4802,
+        "found": 4802,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "plane_b": {
+        "expected": 21,
+        "found": 21,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "profile": "mixed",
+      "reconcile_records_per_second": 42182.57,
+      "reconcile_stage_ms": {
+        "ingest_aggregate": 66,
+        "plane_a": 119,
+        "plane_b": 3
+      },
+      "reconcile_wall_ms": 241,
+      "repetition": 0,
+      "requested_orders": 5000,
+      "seed": 42,
+      "source_conservation": 1.0,
+      "total_ms": 662,
+      "truth_integrity": "PASS"
+    },
+    {
+      "amount_delta_paise": 0,
+      "bank_rows": 28,
+      "evaluate_ms": 288,
+      "exception_precision": 1.0,
+      "exception_recall": 1.0,
+      "false_match_count": 0,
+      "gate": {
+        "message": "gate=mixed PASS | truth=INDEPENDENTLY-REBUILT | Plane-A 4803/4803 (100.00%) | Plane-B 21/21 (100.00%) | false=0 | exceptions 6/6 | source-conservation 10159/10159",
+        "name": "mixed",
+        "status": "PASS"
+      },
+      "gateway_recon_rows": 5131,
+      "generate_ms": 134,
+      "input_hashes": {
+        "bank": "db427a6a27143e2477ce0540f9e18bbe88e34a409f0a584f1dfbceb629dbddaf",
+        "gateway_recon": "2d1ceab21be3355357687c58e2b8bcc0ef8305aa067393f1085eeb09b7899501",
+        "orders": "bd9de62a902a301c77b63a7eba9d5c950da580c232ab6b10aec02334b62a6228"
+      },
+      "orders_rows": 5000,
+      "physical_source_records": 10159,
+      "plane_a": {
+        "expected": 4803,
+        "found": 4803,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "plane_b": {
+        "expected": 21,
+        "found": 21,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "profile": "mixed",
+      "reconcile_records_per_second": 42329.17,
+      "reconcile_stage_ms": {
+        "ingest_aggregate": 64,
+        "plane_a": 122,
+        "plane_b": 3
+      },
+      "reconcile_wall_ms": 240,
+      "repetition": 1,
+      "requested_orders": 5000,
+      "seed": 43,
+      "source_conservation": 1.0,
+      "total_ms": 662,
+      "truth_integrity": "PASS"
+    },
+    {
+      "amount_delta_paise": 0,
+      "bank_rows": 28,
+      "evaluate_ms": 289,
+      "exception_precision": 1.0,
+      "exception_recall": 1.0,
+      "false_match_count": 0,
+      "gate": {
+        "message": "gate=mixed PASS | truth=INDEPENDENTLY-REBUILT | Plane-A 4770/4770 (100.00%) | Plane-B 21/21 (100.00%) | false=0 | exceptions 6/6 | source-conservation 10102/10102",
+        "name": "mixed",
+        "status": "PASS"
+      },
+      "gateway_recon_rows": 5074,
+      "generate_ms": 132,
+      "input_hashes": {
+        "bank": "32295afa0ccef800f59cb12679042cbde0adbfd13db02a097952332b51933670",
+        "gateway_recon": "2707fbf0b65d9768944670181ab8604009bc3ae7b539b19653365afd397d9ccb",
+        "orders": "20173b0c7a238ead3de4e38947aa0aa2e5739cc13bdb4f2312820872fbccdb09"
+      },
+      "orders_rows": 5000,
+      "physical_source_records": 10102,
+      "plane_a": {
+        "expected": 4770,
+        "found": 4770,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "plane_b": {
+        "expected": 21,
+        "found": 21,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "profile": "mixed",
+      "reconcile_records_per_second": 43731.6,
+      "reconcile_stage_ms": {
+        "ingest_aggregate": 62,
+        "plane_a": 117,
+        "plane_b": 3
+      },
+      "reconcile_wall_ms": 231,
+      "repetition": 2,
+      "requested_orders": 5000,
+      "seed": 44,
+      "source_conservation": 1.0,
+      "total_ms": 652,
+      "truth_integrity": "PASS"
+    },
+    {
+      "amount_delta_paise": 0,
+      "bank_rows": 28,
+      "evaluate_ms": 616,
+      "exception_precision": 1.0,
+      "exception_recall": 1.0,
+      "false_match_count": 0,
+      "gate": {
+        "message": "gate=mixed PASS | truth=INDEPENDENTLY-REBUILT | Plane-A 9626/9626 (100.00%) | Plane-B 21/21 (100.00%) | false=0 | exceptions 6/6 | source-conservation 20314/20314",
+        "name": "mixed",
+        "status": "PASS"
+      },
+      "gateway_recon_rows": 10286,
+      "generate_ms": 271,
+      "input_hashes": {
+        "bank": "eaf8aeb016af0940bdd671c2b50dfc1547609f28924ae5945161458bdeb312dd",
+        "gateway_recon": "efc5f00b472d5c72bf32b8fc43e7a7e1d7690f3eed792622fd7a7de6e4d0f207",
+        "orders": "92d07e57321a0a7c17e5c72ac570bfe9fa419c2f50ea8a97ce342c316b8e2a7d"
+      },
+      "orders_rows": 10000,
+      "physical_source_records": 20314,
+      "plane_a": {
+        "expected": 9626,
+        "found": 9626,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "plane_b": {
+        "expected": 21,
+        "found": 21,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "profile": "mixed",
+      "reconcile_records_per_second": 44744.49,
+      "reconcile_stage_ms": {
+        "ingest_aggregate": 131,
+        "plane_a": 237,
+        "plane_b": 3
+      },
+      "reconcile_wall_ms": 454,
+      "repetition": 0,
+      "requested_orders": 10000,
+      "seed": 42,
+      "source_conservation": 1.0,
+      "total_ms": 1341,
+      "truth_integrity": "PASS"
+    },
+    {
+      "amount_delta_paise": 0,
+      "bank_rows": 28,
+      "evaluate_ms": 649,
+      "exception_precision": 1.0,
+      "exception_recall": 1.0,
+      "false_match_count": 0,
+      "gate": {
+        "message": "gate=mixed PASS | truth=INDEPENDENTLY-REBUILT | Plane-A 9608/9608 (100.00%) | Plane-B 21/21 (100.00%) | false=0 | exceptions 6/6 | source-conservation 20291/20291",
+        "name": "mixed",
+        "status": "PASS"
+      },
+      "gateway_recon_rows": 10263,
+      "generate_ms": 299,
+      "input_hashes": {
+        "bank": "af725b918a8fc172326cebd71bd6582e638cfb3b0220a8c96178c23bb8d6a9f0",
+        "gateway_recon": "7de73b3929e8f5bf9d10800c5b386474a111e6463cf32eeed1d0c0ed5c442c25",
+        "orders": "d0792d61532020930fe72e6903e5c06db0efa2854b765e14f7c12703799fe959"
+      },
+      "orders_rows": 10000,
+      "physical_source_records": 20291,
+      "plane_a": {
+        "expected": 9608,
+        "found": 9608,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "plane_b": {
+        "expected": 21,
+        "found": 21,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "profile": "mixed",
+      "reconcile_records_per_second": 43636.56,
+      "reconcile_stage_ms": {
+        "ingest_aggregate": 128,
+        "plane_a": 251,
+        "plane_b": 5
+      },
+      "reconcile_wall_ms": 465,
+      "repetition": 1,
+      "requested_orders": 10000,
+      "seed": 43,
+      "source_conservation": 1.0,
+      "total_ms": 1413,
+      "truth_integrity": "PASS"
+    },
+    {
+      "amount_delta_paise": 0,
+      "bank_rows": 28,
+      "evaluate_ms": 610,
+      "exception_precision": 1.0,
+      "exception_recall": 1.0,
+      "false_match_count": 0,
+      "gate": {
+        "message": "gate=mixed PASS | truth=INDEPENDENTLY-REBUILT | Plane-A 9589/9589 (100.00%) | Plane-B 21/21 (100.00%) | false=0 | exceptions 6/6 | source-conservation 20247/20247",
+        "name": "mixed",
+        "status": "PASS"
+      },
+      "gateway_recon_rows": 10219,
+      "generate_ms": 269,
+      "input_hashes": {
+        "bank": "be4cd06a277f493e9bb75683d9eef08d51a53b6e62ce188f951f6d3287c02803",
+        "gateway_recon": "8f4317e4a54f88b3aa4c05be7720a0fb5ccf3632bd37e2dfa6ad10f6bf05d82b",
+        "orders": "c1b7900c603c8539bf9d3f8f2abe1820a16bff18ce124468c2681f5b0e602520"
+      },
+      "orders_rows": 10000,
+      "physical_source_records": 20247,
+      "plane_a": {
+        "expected": 9589,
+        "found": 9589,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "plane_b": {
+        "expected": 21,
+        "found": 21,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "profile": "mixed",
+      "reconcile_records_per_second": 43635.78,
+      "reconcile_stage_ms": {
+        "ingest_aggregate": 128,
+        "plane_a": 248,
+        "plane_b": 3
+      },
+      "reconcile_wall_ms": 464,
+      "repetition": 2,
+      "requested_orders": 10000,
+      "seed": 44,
+      "source_conservation": 1.0,
+      "total_ms": 1343,
+      "truth_integrity": "PASS"
     }
   ],
-  "schema_version": "1.0.0",
+  "results": [
+    {
+      "all_gates_passed": true,
+      "max_abs_amount_delta_paise": 0,
+      "median_physical_source_records": 125,
+      "min_plane_a_precision": 1.0,
+      "min_plane_b_precision": 1.0,
+      "min_source_conservation": 1.0,
+      "reconcile_records_per_second": {
+        "max": 5083.33,
+        "median": 5000.0,
+        "min": 3735.29
+      },
+      "reconcile_wall_ms": {
+        "max": 34.0,
+        "median": 25.0,
+        "min": 24.0
+      },
+      "repetitions": 3,
+      "requested_orders": 50,
+      "total_demo_ms": {
+        "max": 46.0,
+        "median": 36.0,
+        "min": 35.0
+      },
+      "total_false_matches": 0
+    },
+    {
+      "all_gates_passed": true,
+      "max_abs_amount_delta_paise": 0,
+      "median_physical_source_records": 435,
+      "min_plane_a_precision": 1.0,
+      "min_plane_b_precision": 1.0,
+      "min_source_conservation": 1.0,
+      "reconcile_records_per_second": {
+        "max": 14000.0,
+        "median": 13625.0,
+        "min": 12794.12
+      },
+      "reconcile_wall_ms": {
+        "max": 34.0,
+        "median": 32.0,
+        "min": 31.0
+      },
+      "repetitions": 3,
+      "requested_orders": 200,
+      "total_demo_ms": {
+        "max": 57.0,
+        "median": 55.0,
+        "min": 54.0
+      },
+      "total_false_matches": 0
+    },
+    {
+      "all_gates_passed": true,
+      "max_abs_amount_delta_paise": 0,
+      "median_physical_source_records": 2464,
+      "min_plane_a_precision": 1.0,
+      "min_plane_b_precision": 1.0,
+      "min_source_conservation": 1.0,
+      "reconcile_records_per_second": {
+        "max": 33794.52,
+        "median": 33753.42,
+        "min": 32653.33
+      },
+      "reconcile_wall_ms": {
+        "max": 75.0,
+        "median": 73.0,
+        "min": 73.0
+      },
+      "repetitions": 3,
+      "requested_orders": 1200,
+      "total_demo_ms": {
+        "max": 180.0,
+        "median": 179.0,
+        "min": 178.0
+      },
+      "total_false_matches": 0
+    },
+    {
+      "all_gates_passed": true,
+      "max_abs_amount_delta_paise": 0,
+      "median_physical_source_records": 10159,
+      "min_plane_a_precision": 1.0,
+      "min_plane_b_precision": 1.0,
+      "min_source_conservation": 1.0,
+      "reconcile_records_per_second": {
+        "max": 43731.6,
+        "median": 42329.17,
+        "min": 42182.57
+      },
+      "reconcile_wall_ms": {
+        "max": 241.0,
+        "median": 240.0,
+        "min": 231.0
+      },
+      "repetitions": 3,
+      "requested_orders": 5000,
+      "total_demo_ms": {
+        "max": 662.0,
+        "median": 662.0,
+        "min": 652.0
+      },
+      "total_false_matches": 0
+    },
+    {
+      "all_gates_passed": true,
+      "max_abs_amount_delta_paise": 0,
+      "median_physical_source_records": 20291,
+      "min_plane_a_precision": 1.0,
+      "min_plane_b_precision": 1.0,
+      "min_source_conservation": 1.0,
+      "reconcile_records_per_second": {
+        "max": 44744.49,
+        "median": 43636.56,
+        "min": 43635.78
+      },
+      "reconcile_wall_ms": {
+        "max": 465.0,
+        "median": 464.0,
+        "min": 454.0
+      },
+      "repetitions": 3,
+      "requested_orders": 10000,
+      "total_demo_ms": {
+        "max": 1413.0,
+        "median": 1343.0,
+        "min": 1341.0
+      },
+      "total_false_matches": 0
+    }
+  ],
+  "schema_version": "2.0.0",
   "seed_sequence": [
     42,
     43,
