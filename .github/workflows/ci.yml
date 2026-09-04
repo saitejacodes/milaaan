@@ -6,6 +6,7 @@ on:
 
 jobs:
   test:
+    name: judge path (py${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -16,5 +17,69 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: python -m pip install -e '.[dev]'
-      - run: make ci
+
+      # Exactly what a judge is asked to run, including the dashboard extra.
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[dev,dashboard]'
+
+      - name: unittest
+        run: python -m unittest discover -s tests -v
+
+      - name: pytest
+        run: python -m pytest -q
+
+      # make ci already runs the adversarial board, the benchmark smoke sweep,
+      # the dashboard import check, and the truth/AI regression suites.
+      - name: make ci
+        run: make ci
+
+      - name: make demo
+        run: make demo
+
+      - name: make judge
+        run: make judge
+
+      - name: Upload judging artefacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: milaan-artifacts-py${{ matrix.python-version }}
+          path: |
+            data/judge/functional_metrics.json
+            data/judge/agent_metrics.json
+            data/judge/artifact_provenance.json
+            data/judge/runtime_telemetry.json
+            data/judge/report.html
+            data/benchmark_smoke.json
+          if-no-files-found: warn
+
+  no-api-key-required:
+    name: offline guarantee
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e '.[dev,dashboard]'
+      # Deliberately no secrets in this job's environment.
+      - name: judge mode runs with no provider configuration at all
+        env:
+          MILAAN_LLM_PROVIDER: ""
+          MILAAN_LLM_MODEL: ""
+          MILAAN_LLM_API_KEY: ""
+        run: make judge
+
+  secrets:
+    name: secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

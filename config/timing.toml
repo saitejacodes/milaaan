@@ -2,4 +2,8 @@ settlement_cycle_bd = 2
 bank_lag_bd_choices = [0, 1]
 window_b_bd = 3
 window_a_bd = 1
-tol_b_paise = 100
+# Amount equality is exact on every tier. B1 has *less* identifier evidence
+# than B0, so it must not have a looser amount rule; a settlement batch is the
+# exact signed sum of its members, and any difference is a real discrepancy
+# that belongs in the exception queue rather than inside a posted match.
+tol_b_paise = 0

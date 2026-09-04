@@ -31,7 +31,7 @@ class CalendarAndConfigTests(unittest.TestCase):
     def test_timing_toml_is_valid(self) -> None:
         cfg = load_timing()
         self.assertEqual(cfg.settlement_cycle_bd, 2)
-        self.assertEqual(cfg.tol_b_paise, 100)
+        self.assertEqual(cfg.tol_b_paise, 0)  # exact amount equality on every tier
 
 
 if __name__ == "__main__":

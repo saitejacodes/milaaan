@@ -55,7 +55,7 @@
     "fees": "32c5a294b09a72d63527b7a0428abb76588c6e0661cc0d44af3aa44c388103cb",
     "gateway_recon": "733ff0055daf4ed600ec7f7a96b70f53c2ce26fa83a8fc640b1cb319263d64f8",
     "orders": "57aaa6fccfae45bd10b8c0d2aec35239714ed3e48390635f423895470093b066",
-    "timing": "942b291553c685d44e5ce395fe5f0970f1395148a25e1ea0ce3fd04a0ffe308d"
+    "timing": "8b2b9afa5c9aed466e2f767afe38722b7e23ccb6c4f2b95f89990fb62cb0e38b"
   },
   "input_integrity": {
     "all_match": true,
@@ -194,7 +194,7 @@
     "generation_inputs": {
       "config_hashes": {
         "fees": "32c5a294b09a72d63527b7a0428abb76588c6e0661cc0d44af3aa44c388103cb",
-        "timing": "942b291553c685d44e5ce395fe5f0970f1395148a25e1ea0ce3fd04a0ffe308d"
+        "timing": "8b2b9afa5c9aed466e2f767afe38722b7e23ccb6c4f2b95f89990fb62cb0e38b"
       },
       "generator_version": "1.3.0",
       "profile": "mixed",

@@ -85,8 +85,7 @@ def run_pipeline(data_dir: Path, database_path: Path, llm_mode: str = "mock") ->
 
         mark = time.perf_counter()
         plane_a = match_plane_a(ingested.orders, ingested.txns, timing.window_a_bd)
-        for decision in plane_a.decisions:
-            db.insert_decision(conn, run_id, decision)
+        db.insert_decisions(conn, run_id, plane_a.decisions)
         stage_ms["plane_a"] = round((time.perf_counter() - mark) * 1000)
 
         mark = time.perf_counter()
@@ -100,8 +99,7 @@ def run_pipeline(data_dir: Path, database_path: Path, llm_mode: str = "mock") ->
         )
         apply_recovery(plane_b, aggregated.batches, ingested.bank, recovery_hits,
                        timing.window_b_bd)
-        for decision in plane_b.decisions:
-            db.insert_decision(conn, run_id, decision)
+        db.insert_decisions(conn, run_id, plane_b.decisions)
         stage_ms["plane_b"] = round((time.perf_counter() - mark) * 1000)
 
         residual = triage_plane_b(
@@ -114,8 +112,7 @@ def run_pipeline(data_dir: Path, database_path: Path, llm_mode: str = "mock") ->
         )
         all_exceptions = [with_canonical_language(item) for item in all_exceptions]
         all_exceptions = polish_exceptions(conn, run_id, all_exceptions, llm_mode)
-        for item in all_exceptions:
-            db.insert_exception(conn, run_id, item)
+        db.insert_exceptions(conn, run_id, all_exceptions)
         event(conn, run_id, "run_completed", {
             "plane_a_matches": len(plane_a.decisions),
             "plane_b_matches": len(plane_b.decisions),

@@ -51,8 +51,12 @@ def _normalize_txn(raw: dict[str, str], fees: FeeConfig) -> GatewayTxn:
     txn_id = raw["entity_id"]
     if txn_type is TxnType.PAYMENT:
         channel = Channel(raw["method"])
+        # Checked before fee_for so a negative gross is reported as the finance
+        # control it is, rather than as a generic ingest rejection.
+        if min(gross, fee, tax, net) < 0:
+            raise ArithmeticError("FEE_MODEL_VIOLATION")
         expected_fee, expected_tax = fee_for(gross, channel, fees)
-        if min(gross, fee, tax, net) < 0 or (fee, tax) != (expected_fee, expected_tax):
+        if (fee, tax) != (expected_fee, expected_tax):
             raise ArithmeticError("FEE_MODEL_VIOLATION")
         if net != gross - fee - tax:
             raise ArithmeticError("FEE_MODEL_VIOLATION")

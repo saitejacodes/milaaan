@@ -6,8 +6,15 @@ __pycache__/
 .venv/
 dist/
 build/
+
+# Generated run artefacts. Everything here is reproducible with `make judge`,
+# `make demo` or `make benchmark`; nothing here is an input.
 data/run*/
+data/judge/
+data/benchmark_smoke.json
 data/.llm_cache.sqlite
+
+# Never commit credentials, model caches, or run databases.
 .env
 *.db
 *.sqlite

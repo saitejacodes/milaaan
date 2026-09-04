@@ -162,44 +162,73 @@ def audit(conn: sqlite3.Connection, run_id: str, actor: str, action: str,
     )
 
 
+def insert_decisions(conn: sqlite3.Connection, run_id: str,
+                     decisions: Iterable[Decision]) -> list[int]:
+    """Persist a whole plane in one transaction.
+
+    Committing per match cost a separate fsync each time and dominated the
+    run. Batching also strengthens the guarantee: a plane is written whole or
+    not at all, and the UNIQUE(run_id, plane, entity_type, entity_id) exclusivity
+    constraint is still enforced on every individual member row.
+    """
+    with conn:
+        return [_write_decision(conn, run_id, decision) for decision in decisions]
+
+
 def insert_decision(conn: sqlite3.Connection, run_id: str, decision: Decision) -> int:
     with conn:
-        cur = conn.execute(
-            """INSERT INTO matches(run_id,plane,kind,tier,right_id,amount_diff_paise,
-               date_gap_bd,confidence,evidence,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)""",
-            (run_id, decision.plane.value, decision.kind.value, decision.tier.value,
-             decision.right_id, decision.amount_diff_paise, decision.date_gap_bd,
-             decision.confidence, dumps(decision.evidence), utc_now()),
-        )
-        match_id = int(cur.lastrowid)
-        if decision.plane is Plane.A:
-            members = [("ORDER", entity_id) for entity_id in decision.left_ids]
-            members.append(("TXN", decision.right_id))
-        else:
-            members = [("BATCH", entity_id) for entity_id in decision.left_ids]
-            members.append(("BANK_LINE", decision.right_id))
-        conn.executemany(
-            "INSERT INTO match_members(match_id,run_id,plane,entity_type,entity_id) VALUES(?,?,?,?,?)",
-            ((match_id, run_id, decision.plane.value, typ, entity_id) for typ, entity_id in members),
-        )
-        audit(conn, run_id, "engine", "match_created", {
-            "match_id": match_id, "plane": decision.plane.value,
-            "tier": decision.tier.value, "members": members,
-        })
+        return _write_decision(conn, run_id, decision)
+
+
+def _write_decision(conn: sqlite3.Connection, run_id: str, decision: Decision) -> int:
+    """Write one match. The caller owns the transaction."""
+    cur = conn.execute(
+        """INSERT INTO matches(run_id,plane,kind,tier,right_id,amount_diff_paise,
+           date_gap_bd,confidence,evidence,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)""",
+        (run_id, decision.plane.value, decision.kind.value, decision.tier.value,
+         decision.right_id, decision.amount_diff_paise, decision.date_gap_bd,
+         decision.confidence, dumps(decision.evidence), utc_now()),
+    )
+    match_id = int(cur.lastrowid)
+    if decision.plane is Plane.A:
+        members = [("ORDER", entity_id) for entity_id in decision.left_ids]
+        members.append(("TXN", decision.right_id))
+    else:
+        members = [("BATCH", entity_id) for entity_id in decision.left_ids]
+        members.append(("BANK_LINE", decision.right_id))
+    conn.executemany(
+        "INSERT INTO match_members(match_id,run_id,plane,entity_type,entity_id) VALUES(?,?,?,?,?)",
+        ((match_id, run_id, decision.plane.value, typ, entity_id) for typ, entity_id in members),
+    )
+    audit(conn, run_id, "engine", "match_created", {
+        "match_id": match_id, "plane": decision.plane.value,
+        "tier": decision.tier.value, "members": members,
+    })
     return match_id
+
+
+def insert_exceptions(conn: sqlite3.Connection, run_id: str,
+                      items: Iterable[ExceptionItem]) -> list[int]:
+    with conn:
+        return [_write_exception(conn, run_id, item) for item in items]
 
 
 def insert_exception(conn: sqlite3.Connection, run_id: str, item: ExceptionItem) -> int:
     with conn:
-        cur = conn.execute(
-            """INSERT INTO exceptions(run_id,scope_ids,reason_code,confidence,evidence,
-               narrative,guidance,suggested_action,created_at) VALUES(?,?,?,?,?,?,?,?,?)""",
-            (run_id, dumps(item.scope_ids), item.reason, item.confidence,
-             dumps(item.evidence), item.narrative, item.guidance,
-             item.suggested_action, utc_now()),
-        )
-        exception_id = int(cur.lastrowid)
-        audit(conn, run_id, "engine", "exception_created", {
-            "exception_id": exception_id, "reason": item.reason, "scope_ids": item.scope_ids,
-        })
+        return _write_exception(conn, run_id, item)
+
+
+def _write_exception(conn: sqlite3.Connection, run_id: str, item: ExceptionItem) -> int:
+    """Write one exception. The caller owns the transaction."""
+    cur = conn.execute(
+        """INSERT INTO exceptions(run_id,scope_ids,reason_code,confidence,evidence,
+           narrative,guidance,suggested_action,created_at) VALUES(?,?,?,?,?,?,?,?,?)""",
+        (run_id, dumps(item.scope_ids), item.reason, item.confidence,
+         dumps(item.evidence), item.narrative, item.guidance,
+         item.suggested_action, utc_now()),
+    )
+    exception_id = int(cur.lastrowid)
+    audit(conn, run_id, "engine", "exception_created", {
+        "exception_id": exception_id, "reason": item.reason, "scope_ids": item.scope_ids,
+    })
     return exception_id

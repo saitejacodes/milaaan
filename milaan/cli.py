@@ -50,6 +50,7 @@ def _parser() -> argparse.ArgumentParser:
     benchmark.add_argument("--out", type=Path, required=True)
     benchmark.add_argument("--sizes", default="50,200,1200,5000,10000")
     benchmark.add_argument("--repetitions", type=int, default=3)
+    benchmark.add_argument("--profile", choices=("clean", "mixed", "hard"), default="mixed")
     return parser
 
 
@@ -88,7 +89,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         from milaan.evalx.benchmark import run_benchmark
 
         sizes = tuple(int(value.strip()) for value in args.sizes.split(",") if value.strip())
-        result = run_benchmark(args.out, sizes, args.repetitions)
+        result = run_benchmark(args.out, sizes, args.repetitions, args.profile)
     if result:
         print(result)
     return 0
