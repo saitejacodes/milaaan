@@ -1,8 +1,8 @@
 {
   "environment": {
-    "git_sha": "18846f095f7b053a702e667ae8ede7ed8a1b00c5",
+    "git_sha": "591da1eb619573d8db7cf3b093006a5d4921df81",
     "machine": "arm64",
-    "measured_at": "2026-09-04T10:26:01+0530",
+    "measured_at": "2026-09-04T14:05:55+0530",
     "platform": "macOS-26.6.2-arm64-arm-64bit",
     "processor": "arm",
     "python_implementation": "CPython",
@@ -51,18 +51,18 @@
         "recall": 1.0
       },
       "profile": "mixed",
-      "reconcile_records_per_second": 3735.29,
+      "reconcile_records_per_second": 4703.7,
       "reconcile_stage_ms": {
         "ingest_aggregate": 1,
         "plane_a": 2,
-        "plane_b": 2
+        "plane_b": 3
       },
-      "reconcile_wall_ms": 34,
+      "reconcile_wall_ms": 27,
       "repetition": 0,
       "requested_orders": 50,
       "seed": 42,
       "source_conservation": 1.0,
-      "total_ms": 46,
+      "total_ms": 39,
       "truth_integrity": "PASS"
     },
     {
@@ -195,18 +195,18 @@
         "recall": 1.0
       },
       "profile": "mixed",
-      "reconcile_records_per_second": 14000.0,
+      "reconcile_records_per_second": 13151.52,
       "reconcile_stage_ms": {
         "ingest_aggregate": 3,
-        "plane_a": 5,
+        "plane_a": 6,
         "plane_b": 3
       },
-      "reconcile_wall_ms": 31,
+      "reconcile_wall_ms": 33,
       "repetition": 0,
       "requested_orders": 200,
       "seed": 42,
       "source_conservation": 1.0,
-      "total_ms": 54,
+      "total_ms": 56,
       "truth_integrity": "PASS"
     },
     {
@@ -243,18 +243,18 @@
         "recall": 1.0
       },
       "profile": "mixed",
-      "reconcile_records_per_second": 12794.12,
+      "reconcile_records_per_second": 13181.82,
       "reconcile_stage_ms": {
         "ingest_aggregate": 3,
-        "plane_a": 5,
+        "plane_a": 6,
         "plane_b": 3
       },
-      "reconcile_wall_ms": 34,
+      "reconcile_wall_ms": 33,
       "repetition": 1,
       "requested_orders": 200,
       "seed": 43,
       "source_conservation": 1.0,
-      "total_ms": 57,
+      "total_ms": 56,
       "truth_integrity": "PASS"
     },
     {
@@ -291,24 +291,24 @@
         "recall": 1.0
       },
       "profile": "mixed",
-      "reconcile_records_per_second": 13625.0,
+      "reconcile_records_per_second": 13212.12,
       "reconcile_stage_ms": {
         "ingest_aggregate": 3,
-        "plane_a": 5,
+        "plane_a": 6,
         "plane_b": 3
       },
-      "reconcile_wall_ms": 32,
+      "reconcile_wall_ms": 33,
       "repetition": 2,
       "requested_orders": 200,
       "seed": 44,
       "source_conservation": 1.0,
-      "total_ms": 55,
+      "total_ms": 56,
       "truth_integrity": "PASS"
     },
     {
       "amount_delta_paise": 0,
       "bank_rows": 28,
-      "evaluate_ms": 71,
+      "evaluate_ms": 70,
       "exception_precision": 1.0,
       "exception_recall": 1.0,
       "false_match_count": 0,
@@ -339,24 +339,24 @@
         "recall": 1.0
       },
       "profile": "mixed",
-      "reconcile_records_per_second": 33794.52,
+      "reconcile_records_per_second": 30085.37,
       "reconcile_stage_ms": {
         "ingest_aggregate": 16,
-        "plane_a": 28,
-        "plane_b": 3
+        "plane_a": 35,
+        "plane_b": 4
       },
-      "reconcile_wall_ms": 73,
+      "reconcile_wall_ms": 82,
       "repetition": 0,
       "requested_orders": 1200,
       "seed": 42,
       "source_conservation": 1.0,
-      "total_ms": 178,
+      "total_ms": 186,
       "truth_integrity": "PASS"
     },
     {
       "amount_delta_paise": 0,
       "bank_rows": 27,
-      "evaluate_ms": 73,
+      "evaluate_ms": 72,
       "exception_precision": 1.0,
       "exception_recall": 1.0,
       "false_match_count": 0,
@@ -387,24 +387,24 @@
         "recall": 1.0
       },
       "profile": "mixed",
-      "reconcile_records_per_second": 33753.42,
+      "reconcile_records_per_second": 29686.75,
       "reconcile_stage_ms": {
         "ingest_aggregate": 16,
-        "plane_a": 28,
+        "plane_a": 35,
         "plane_b": 3
       },
-      "reconcile_wall_ms": 73,
+      "reconcile_wall_ms": 83,
       "repetition": 1,
       "requested_orders": 1200,
       "seed": 43,
       "source_conservation": 1.0,
-      "total_ms": 180,
+      "total_ms": 189,
       "truth_integrity": "PASS"
     },
     {
       "amount_delta_paise": 0,
       "bank_rows": 27,
-      "evaluate_ms": 71,
+      "evaluate_ms": 69,
       "exception_precision": 1.0,
       "exception_recall": 1.0,
       "false_match_count": 0,
@@ -435,24 +435,24 @@
         "recall": 1.0
       },
       "profile": "mixed",
-      "reconcile_records_per_second": 32653.33,
+      "reconcile_records_per_second": 22263.64,
       "reconcile_stage_ms": {
         "ingest_aggregate": 15,
-        "plane_a": 28,
+        "plane_a": 35,
         "plane_b": 3
       },
-      "reconcile_wall_ms": 75,
+      "reconcile_wall_ms": 110,
       "repetition": 2,
       "requested_orders": 1200,
       "seed": 44,
       "source_conservation": 1.0,
-      "total_ms": 179,
+      "total_ms": 212,
       "truth_integrity": "PASS"
     },
     {
       "amount_delta_paise": 0,
       "bank_rows": 28,
-      "evaluate_ms": 287,
+      "evaluate_ms": 282,
       "exception_precision": 1.0,
       "exception_recall": 1.0,
       "false_match_count": 0,
@@ -462,7 +462,7 @@
         "status": "PASS"
       },
       "gateway_recon_rows": 5138,
-      "generate_ms": 134,
+      "generate_ms": 137,
       "input_hashes": {
         "bank": "a63e130f46f22249c51054d477a9bc00ac95d3362fa1adf5431a21c59e06c0f7",
         "gateway_recon": "abbaff20d932cd00d09c3466c9fbc89224ce95dc6d6c37e5ac4cc85164b0a681",
@@ -483,24 +483,24 @@
         "recall": 1.0
       },
       "profile": "mixed",
-      "reconcile_records_per_second": 42182.57,
+      "reconcile_records_per_second": 37791.82,
       "reconcile_stage_ms": {
-        "ingest_aggregate": 66,
-        "plane_a": 119,
-        "plane_b": 3
+        "ingest_aggregate": 67,
+        "plane_a": 146,
+        "plane_b": 4
       },
-      "reconcile_wall_ms": 241,
+      "reconcile_wall_ms": 269,
       "repetition": 0,
       "requested_orders": 5000,
       "seed": 42,
       "source_conservation": 1.0,
-      "total_ms": 662,
+      "total_ms": 688,
       "truth_integrity": "PASS"
     },
     {
       "amount_delta_paise": 0,
       "bank_rows": 28,
-      "evaluate_ms": 288,
+      "evaluate_ms": 283,
       "exception_precision": 1.0,
       "exception_recall": 1.0,
       "false_match_count": 0,
@@ -510,7 +510,7 @@
         "status": "PASS"
       },
       "gateway_recon_rows": 5131,
-      "generate_ms": 134,
+      "generate_ms": 136,
       "input_hashes": {
         "bank": "db427a6a27143e2477ce0540f9e18bbe88e34a409f0a584f1dfbceb629dbddaf",
         "gateway_recon": "2d1ceab21be3355357687c58e2b8bcc0ef8305aa067393f1085eeb09b7899501",
@@ -531,24 +531,24 @@
         "recall": 1.0
       },
       "profile": "mixed",
-      "reconcile_records_per_second": 42329.17,
+      "reconcile_records_per_second": 37625.93,
       "reconcile_stage_ms": {
         "ingest_aggregate": 64,
-        "plane_a": 122,
-        "plane_b": 3
+        "plane_a": 149,
+        "plane_b": 4
       },
-      "reconcile_wall_ms": 240,
+      "reconcile_wall_ms": 270,
       "repetition": 1,
       "requested_orders": 5000,
       "seed": 43,
       "source_conservation": 1.0,
-      "total_ms": 662,
+      "total_ms": 689,
       "truth_integrity": "PASS"
     },
     {
       "amount_delta_paise": 0,
       "bank_rows": 28,
-      "evaluate_ms": 289,
+      "evaluate_ms": 285,
       "exception_precision": 1.0,
       "exception_recall": 1.0,
       "false_match_count": 0,
@@ -558,7 +558,7 @@
         "status": "PASS"
       },
       "gateway_recon_rows": 5074,
-      "generate_ms": 132,
+      "generate_ms": 134,
       "input_hashes": {
         "bank": "32295afa0ccef800f59cb12679042cbde0adbfd13db02a097952332b51933670",
         "gateway_recon": "2707fbf0b65d9768944670181ab8604009bc3ae7b539b19653365afd397d9ccb",
@@ -579,24 +579,24 @@
         "recall": 1.0
       },
       "profile": "mixed",
-      "reconcile_records_per_second": 43731.6,
+      "reconcile_records_per_second": 37835.21,
       "reconcile_stage_ms": {
         "ingest_aggregate": 62,
-        "plane_a": 117,
-        "plane_b": 3
+        "plane_a": 149,
+        "plane_b": 4
       },
-      "reconcile_wall_ms": 231,
+      "reconcile_wall_ms": 267,
       "repetition": 2,
       "requested_orders": 5000,
       "seed": 44,
       "source_conservation": 1.0,
-      "total_ms": 652,
+      "total_ms": 686,
       "truth_integrity": "PASS"
     },
     {
       "amount_delta_paise": 0,
       "bank_rows": 28,
-      "evaluate_ms": 616,
+      "evaluate_ms": 585,
       "exception_precision": 1.0,
       "exception_recall": 1.0,
       "false_match_count": 0,
@@ -606,7 +606,7 @@
         "status": "PASS"
       },
       "gateway_recon_rows": 10286,
-      "generate_ms": 271,
+      "generate_ms": 278,
       "input_hashes": {
         "bank": "eaf8aeb016af0940bdd671c2b50dfc1547609f28924ae5945161458bdeb312dd",
         "gateway_recon": "efc5f00b472d5c72bf32b8fc43e7a7e1d7690f3eed792622fd7a7de6e4d0f207",
@@ -627,24 +627,24 @@
         "recall": 1.0
       },
       "profile": "mixed",
-      "reconcile_records_per_second": 44744.49,
+      "reconcile_records_per_second": 39292.07,
       "reconcile_stage_ms": {
         "ingest_aggregate": 131,
-        "plane_a": 237,
-        "plane_b": 3
+        "plane_a": 297,
+        "plane_b": 4
       },
-      "reconcile_wall_ms": 454,
+      "reconcile_wall_ms": 517,
       "repetition": 0,
       "requested_orders": 10000,
       "seed": 42,
       "source_conservation": 1.0,
-      "total_ms": 1341,
+      "total_ms": 1380,
       "truth_integrity": "PASS"
     },
     {
       "amount_delta_paise": 0,
       "bank_rows": 28,
-      "evaluate_ms": 649,
+      "evaluate_ms": 574,
       "exception_precision": 1.0,
       "exception_recall": 1.0,
       "false_match_count": 0,
@@ -654,7 +654,7 @@
         "status": "PASS"
       },
       "gateway_recon_rows": 10263,
-      "generate_ms": 299,
+      "generate_ms": 274,
       "input_hashes": {
         "bank": "af725b918a8fc172326cebd71bd6582e638cfb3b0220a8c96178c23bb8d6a9f0",
         "gateway_recon": "7de73b3929e8f5bf9d10800c5b386474a111e6463cf32eeed1d0c0ed5c442c25",
@@ -675,24 +675,24 @@
         "recall": 1.0
       },
       "profile": "mixed",
-      "reconcile_records_per_second": 43636.56,
+      "reconcile_records_per_second": 39247.58,
       "reconcile_stage_ms": {
         "ingest_aggregate": 128,
-        "plane_a": 251,
-        "plane_b": 5
+        "plane_a": 300,
+        "plane_b": 4
       },
-      "reconcile_wall_ms": 465,
+      "reconcile_wall_ms": 517,
       "repetition": 1,
       "requested_orders": 10000,
       "seed": 43,
       "source_conservation": 1.0,
-      "total_ms": 1413,
+      "total_ms": 1365,
       "truth_integrity": "PASS"
     },
     {
       "amount_delta_paise": 0,
       "bank_rows": 28,
-      "evaluate_ms": 610,
+      "evaluate_ms": 581,
       "exception_precision": 1.0,
       "exception_recall": 1.0,
       "false_match_count": 0,
@@ -702,7 +702,7 @@
         "status": "PASS"
       },
       "gateway_recon_rows": 10219,
-      "generate_ms": 269,
+      "generate_ms": 272,
       "input_hashes": {
         "bank": "be4cd06a277f493e9bb75683d9eef08d51a53b6e62ce188f951f6d3287c02803",
         "gateway_recon": "8f4317e4a54f88b3aa4c05be7720a0fb5ccf3632bd37e2dfa6ad10f6bf05d82b",
@@ -723,18 +723,18 @@
         "recall": 1.0
       },
       "profile": "mixed",
-      "reconcile_records_per_second": 43635.78,
+      "reconcile_records_per_second": 39162.48,
       "reconcile_stage_ms": {
-        "ingest_aggregate": 128,
-        "plane_a": 248,
-        "plane_b": 3
+        "ingest_aggregate": 127,
+        "plane_a": 302,
+        "plane_b": 4
       },
-      "reconcile_wall_ms": 464,
+      "reconcile_wall_ms": 517,
       "repetition": 2,
       "requested_orders": 10000,
       "seed": 44,
       "source_conservation": 1.0,
-      "total_ms": 1343,
+      "total_ms": 1370,
       "truth_integrity": "PASS"
     }
   ],
@@ -749,17 +749,17 @@
       "reconcile_records_per_second": {
         "max": 5083.33,
         "median": 5000.0,
-        "min": 3735.29
+        "min": 4703.7
       },
       "reconcile_wall_ms": {
-        "max": 34.0,
+        "max": 27.0,
         "median": 25.0,
         "min": 24.0
       },
       "repetitions": 3,
       "requested_orders": 50,
       "total_demo_ms": {
-        "max": 46.0,
+        "max": 39.0,
         "median": 36.0,
         "min": 35.0
       },
@@ -773,21 +773,21 @@
       "min_plane_b_precision": 1.0,
       "min_source_conservation": 1.0,
       "reconcile_records_per_second": {
-        "max": 14000.0,
-        "median": 13625.0,
-        "min": 12794.12
+        "max": 13212.12,
+        "median": 13181.82,
+        "min": 13151.52
       },
       "reconcile_wall_ms": {
-        "max": 34.0,
-        "median": 32.0,
-        "min": 31.0
+        "max": 33.0,
+        "median": 33.0,
+        "min": 33.0
       },
       "repetitions": 3,
       "requested_orders": 200,
       "total_demo_ms": {
-        "max": 57.0,
-        "median": 55.0,
-        "min": 54.0
+        "max": 56.0,
+        "median": 56.0,
+        "min": 56.0
       },
       "total_false_matches": 0
     },
@@ -799,21 +799,21 @@
       "min_plane_b_precision": 1.0,
       "min_source_conservation": 1.0,
       "reconcile_records_per_second": {
-        "max": 33794.52,
-        "median": 33753.42,
-        "min": 32653.33
+        "max": 30085.37,
+        "median": 29686.75,
+        "min": 22263.64
       },
       "reconcile_wall_ms": {
-        "max": 75.0,
-        "median": 73.0,
-        "min": 73.0
+        "max": 110.0,
+        "median": 83.0,
+        "min": 82.0
       },
       "repetitions": 3,
       "requested_orders": 1200,
       "total_demo_ms": {
-        "max": 180.0,
-        "median": 179.0,
-        "min": 178.0
+        "max": 212.0,
+        "median": 189.0,
+        "min": 186.0
       },
       "total_false_matches": 0
     },
@@ -825,21 +825,21 @@
       "min_plane_b_precision": 1.0,
       "min_source_conservation": 1.0,
       "reconcile_records_per_second": {
-        "max": 43731.6,
-        "median": 42329.17,
-        "min": 42182.57
+        "max": 37835.21,
+        "median": 37791.82,
+        "min": 37625.93
       },
       "reconcile_wall_ms": {
-        "max": 241.0,
-        "median": 240.0,
-        "min": 231.0
+        "max": 270.0,
+        "median": 269.0,
+        "min": 267.0
       },
       "repetitions": 3,
       "requested_orders": 5000,
       "total_demo_ms": {
-        "max": 662.0,
-        "median": 662.0,
-        "min": 652.0
+        "max": 689.0,
+        "median": 688.0,
+        "min": 686.0
       },
       "total_false_matches": 0
     },
@@ -851,21 +851,21 @@
       "min_plane_b_precision": 1.0,
       "min_source_conservation": 1.0,
       "reconcile_records_per_second": {
-        "max": 44744.49,
-        "median": 43636.56,
-        "min": 43635.78
+        "max": 39292.07,
+        "median": 39247.58,
+        "min": 39162.48
       },
       "reconcile_wall_ms": {
-        "max": 465.0,
-        "median": 464.0,
-        "min": 454.0
+        "max": 517.0,
+        "median": 517.0,
+        "min": 517.0
       },
       "repetitions": 3,
       "requested_orders": 10000,
       "total_demo_ms": {
-        "max": 1413.0,
-        "median": 1343.0,
-        "min": 1341.0
+        "max": 1380.0,
+        "median": 1370.0,
+        "min": 1365.0
       },
       "total_false_matches": 0
     }
