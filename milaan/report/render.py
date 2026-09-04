@@ -146,15 +146,19 @@ def _money_card(row: dict) -> str:
     return _card(row["label"], row["amount"], row["note"], tone)
 
 
+ARROW = '<div class="arrow">&darr;</div>'
+
+
 def _trace(trace: EvidenceTrace | None) -> list[str]:
     if trace is None:
         return []
+    last = len(trace.steps) - 1
     steps = "".join(
         f'<div class="step"><div class="muted">{_e(step.label)}</div>'
         f'<div><code>{_e(step.entity_id)}</code></div>'
         f'<div class="value">{_e(money(step.amount_paise or 0))}</div>'
         f'<div class="note">{_e(step.detail)}</div></div>'
-        f'{"<div class=\'arrow\'>↓</div>" if index < len(trace.steps) - 1 else ""}'
+        + (ARROW if index < last else "")
         for index, step in enumerate(trace.steps)
     )
     members = "".join(
