@@ -11,8 +11,15 @@ from milaan.db import connect
 
 
 def money(paise: int) -> str:
+    """Format signed integer paise without ever going through a float.
+
+    ``paise / 100`` is exact for every amount this system will see, but money
+    formatting is not the place to rely on that. Integer division has no
+    magnitude at which it starts rounding.
+    """
     sign = "-" if paise < 0 else ""
-    return f"{sign}₹{abs(paise) / 100:,.2f}"
+    whole, fraction = divmod(abs(int(paise)), 100)
+    return f"{sign}₹{whole:,}.{fraction:02d}"
 
 
 class FinanceTools:

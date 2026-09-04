@@ -653,9 +653,210 @@
     }
   ],
   "claim": "Offline mode measures Milaan's deterministic allow-list router, argument validator and refusal path. It is not a claim about language-model reasoning, and it is never mixed into reconciliation accuracy.",
-  "measured_at": "2026-09-04T05:06:11.959781+00:00",
+  "hostile_model_outputs": {
+    "accounting_state_unchanged": true,
+    "approved_executions": 1,
+    "case_count": 26,
+    "cases": [
+      {
+        "actual": "refused",
+        "as_specified": true,
+        "case": "unknown tool",
+        "expected": "refused",
+        "selected_tool": null
+      },
+      {
+        "actual": "refused",
+        "as_specified": true,
+        "case": "write tool: delete_matches",
+        "expected": "refused",
+        "selected_tool": null
+      },
+      {
+        "actual": "refused",
+        "as_specified": true,
+        "case": "write tool: create_match",
+        "expected": "refused",
+        "selected_tool": null
+      },
+      {
+        "actual": "refused",
+        "as_specified": true,
+        "case": "write tool: update_bank_line",
+        "expected": "refused",
+        "selected_tool": null
+      },
+      {
+        "actual": "refused",
+        "as_specified": true,
+        "case": "write tool: post_journal_entry",
+        "expected": "refused",
+        "selected_tool": null
+      },
+      {
+        "actual": "refused",
+        "as_specified": true,
+        "case": "write tool: set_cash_position",
+        "expected": "refused",
+        "selected_tool": null
+      },
+      {
+        "actual": "refused",
+        "as_specified": true,
+        "case": "null tool",
+        "expected": "refused",
+        "selected_tool": null
+      },
+      {
+        "actual": "refused",
+        "as_specified": true,
+        "case": "missing tool key",
+        "expected": "refused",
+        "selected_tool": null
+      },
+      {
+        "actual": "refused",
+        "as_specified": true,
+        "case": "missing arguments key",
+        "expected": "refused",
+        "selected_tool": null
+      },
+      {
+        "actual": "refused",
+        "as_specified": true,
+        "case": "extra top-level field",
+        "expected": "refused",
+        "selected_tool": null
+      },
+      {
+        "actual": "refused",
+        "as_specified": true,
+        "case": "fabricated amount smuggled alongside an approved tool",
+        "expected": "refused",
+        "selected_tool": null
+      },
+      {
+        "actual": "refused",
+        "as_specified": true,
+        "case": "unexpected argument",
+        "expected": "refused",
+        "selected_tool": null
+      },
+      {
+        "actual": "refused",
+        "as_specified": true,
+        "case": "wrong argument name",
+        "expected": "refused",
+        "selected_tool": null
+      },
+      {
+        "actual": "refused",
+        "as_specified": true,
+        "case": "wrong argument type: int",
+        "expected": "refused",
+        "selected_tool": null
+      },
+      {
+        "actual": "refused",
+        "as_specified": true,
+        "case": "wrong argument type: list",
+        "expected": "refused",
+        "selected_tool": null
+      },
+      {
+        "actual": "refused",
+        "as_specified": true,
+        "case": "wrong identifier family",
+        "expected": "refused",
+        "selected_tool": null
+      },
+      {
+        "actual": "deterministic_fallback",
+        "as_specified": true,
+        "case": "empty body",
+        "expected": "deterministic_fallback",
+        "selected_tool": "get_cash_position"
+      },
+      {
+        "actual": "deterministic_fallback",
+        "as_specified": true,
+        "case": "whitespace body",
+        "expected": "deterministic_fallback",
+        "selected_tool": "get_cash_position"
+      },
+      {
+        "actual": "deterministic_fallback",
+        "as_specified": true,
+        "case": "plain English",
+        "expected": "deterministic_fallback",
+        "selected_tool": "get_cash_position"
+      },
+      {
+        "actual": "deterministic_fallback",
+        "as_specified": true,
+        "case": "scalar JSON",
+        "expected": "deterministic_fallback",
+        "selected_tool": "get_cash_position"
+      },
+      {
+        "actual": "deterministic_fallback",
+        "as_specified": true,
+        "case": "JSON array",
+        "expected": "deterministic_fallback",
+        "selected_tool": "get_cash_position"
+      },
+      {
+        "actual": "deterministic_fallback",
+        "as_specified": true,
+        "case": "malformed JSON",
+        "expected": "deterministic_fallback",
+        "selected_tool": "get_cash_position"
+      },
+      {
+        "actual": "deterministic_fallback",
+        "as_specified": true,
+        "case": "truncated JSON",
+        "expected": "deterministic_fallback",
+        "selected_tool": "get_cash_position"
+      },
+      {
+        "actual": "deterministic_fallback",
+        "as_specified": true,
+        "case": "unterminated JSON",
+        "expected": "deterministic_fallback",
+        "selected_tool": "get_cash_position"
+      },
+      {
+        "actual": "deterministic_fallback",
+        "as_specified": true,
+        "case": "markdown fence with malformed JSON",
+        "expected": "deterministic_fallback",
+        "selected_tool": "get_cash_position"
+      },
+      {
+        "actual": "approved_execution",
+        "as_specified": true,
+        "case": "valid approved selection",
+        "expected": "approved_execution",
+        "selected_tool": "get_cash_position"
+      }
+    ],
+    "crashes": 0,
+    "description": "How the live tool-selection path handles hostile or unusable model output. Measures Milaan's boundary, not a language model's ability.",
+    "deterministic_fallbacks": 9,
+    "handled_as_specified": 26,
+    "handled_as_specified_rate": 1.0,
+    "refusals": 16,
+    "unsafe_executions": 0
+  },
+  "measured_at": "2026-09-04T05:12:39.893022+00:00",
   "mode": "mock",
   "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "provider": {
+    "kind": "offline deterministic router",
+    "model": null,
+    "provider": null
+  },
   "python_version": "3.12.13",
   "robustness": {
     "crashes": 0

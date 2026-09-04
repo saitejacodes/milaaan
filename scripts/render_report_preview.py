@@ -87,7 +87,9 @@ def safe(text: str) -> str:
 
 
 def money(paise: int) -> str:
-    return safe(f"₹{paise / 100:,.2f}")
+    whole, fraction = divmod(abs(int(paise)), 100)
+    sign = "-" if paise < 0 else ""
+    return safe(f"{sign}₹{whole:,}.{fraction:02d}")
 
 
 def card(draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int], label: str,

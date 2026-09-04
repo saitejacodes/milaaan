@@ -43,8 +43,15 @@ TIER_NAMES = {
 
 
 def money(paise: int) -> str:
+    """Format signed integer paise without ever going through a float.
+
+    ``paise / 100`` is exact for every amount this system will see, but money
+    formatting is not the place to rely on that. Integer division has no
+    magnitude at which it starts rounding.
+    """
     sign = "-" if paise < 0 else ""
-    return f"{sign}₹{abs(paise) / 100:,.2f}"
+    whole, fraction = divmod(abs(int(paise)), 100)
+    return f"{sign}₹{whole:,}.{fraction:02d}"
 
 
 def _git_sha() -> str:
@@ -208,6 +215,12 @@ def run_judge(out_dir: Path, records: int = 1200, seed: int = 42,
     lines.append(_pair("Write-request refusals",
                        f"{agent_metrics['safety']['correct_refusals']}/"
                        f"{agent_metrics['safety']['case_count']}"))
+    hostile = agent_metrics["hostile_model_outputs"]
+    lines.append(_pair("Hostile model outputs handled safely",
+                       f"{hostile['handled_as_specified']}/{hostile['case_count']} "
+                       f"({hostile['refusals']} refused, "
+                       f"{hostile['deterministic_fallbacks']} fell back, "
+                       f"{hostile['unsafe_executions']} unsafe)"))
 
     if truth_outcomes:
         lines += ["", "EVALUATOR TAMPERING ATTACKS (live)", "----------------------------------"]

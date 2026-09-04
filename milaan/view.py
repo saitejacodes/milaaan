@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -75,8 +76,15 @@ CANDIDATE_KEYS = (
 
 
 def money(paise: int) -> str:
+    """Format signed integer paise without ever going through a float.
+
+    ``paise / 100`` is exact for every amount this system will see, but money
+    formatting is not the place to rely on that. Integer division has no
+    magnitude at which it starts rounding.
+    """
     sign = "−" if paise < 0 else ""
-    return f"{sign}₹{abs(paise) / 100:,.2f}"
+    whole, fraction = divmod(abs(int(paise)), 100)
+    return f"{sign}₹{whole:,}.{fraction:02d}"
 
 
 class GateNotPassed(ValueError):
@@ -126,6 +134,18 @@ class EvidenceTrace:
 
 
 @dataclass(frozen=True)
+class AuditSummary:
+    """Who did what to this run, and proof that no model is in that list."""
+
+    total_events: int
+    by_actor: dict[str, int]
+    by_action: dict[str, int]
+    non_engine_actions: list[str]
+    llm_calls: int
+    recent: list[dict[str, Any]]
+
+
+@dataclass(frozen=True)
 class View:
     metrics: dict[str, Any]
     telemetry: dict[str, Any]
@@ -140,6 +160,7 @@ class View:
     throughput: dict[str, Any]
     tiers: list[dict[str, Any]]
     trace: EvidenceTrace | None
+    audit: AuditSummary
     blocked_settlements: list[dict[str, Any]] = field(default_factory=list)
     unexplained_credits: list[dict[str, Any]] = field(default_factory=list)
 
@@ -257,6 +278,33 @@ def _display_members(members: list[dict[str, Any]], traced_txn_id: str,
     return rows
 
 
+# Only these actors may appear against a state-changing action. The agent may
+# log that it answered a question; it may never log creating or altering one.
+STATE_CHANGING_ACTIONS = frozenset({"match_created", "exception_created"})
+
+
+def _build_audit(conn: sqlite3.Connection) -> AuditSummary:
+    rows = [dict(row) for row in conn.execute(
+        "SELECT ts,actor,action,payload FROM audit_log ORDER BY id"
+    )]
+    by_actor: Counter[str] = Counter(row["actor"] for row in rows)
+    by_action: Counter[str] = Counter(row["action"] for row in rows)
+    offenders = sorted({
+        f"{row['actor']}:{row['action']}" for row in rows
+        if row["action"] in STATE_CHANGING_ACTIONS and row["actor"] != "engine"
+    })
+    calls = int(conn.execute("SELECT count(*) FROM llm_calls").fetchone()[0])
+    return AuditSummary(
+        total_events=len(rows),
+        by_actor=dict(sorted(by_actor.items())),
+        by_action=dict(sorted(by_action.items())),
+        non_engine_actions=offenders,
+        llm_calls=calls,
+        recent=[{"ts": row["ts"], "actor": row["actor"], "action": row["action"],
+                 "payload": row["payload"][:200]} for row in rows[-15:]],
+    )
+
+
 def _build_trace(conn: sqlite3.Connection) -> EvidenceTrace | None:
     """One complete, verified order-to-bank chain, chosen deterministically."""
     row = conn.execute(
@@ -349,6 +397,7 @@ def build_view(run_dir: Path, database_path: Path) -> View:
         ]
         exceptions = _build_exceptions(conn, batches, bank, orders, tainted, matched)
         trace = _build_trace(conn)
+        audit = _build_audit(conn)
     finally:
         conn.close()
 
@@ -458,6 +507,11 @@ def build_view(run_dir: Path, database_path: Path) -> View:
                        "signed member sums and batch totals"},
             {"label": "False matches", "status": str(metrics["false_match_count"]),
              "detail": "accepted matches that disagree with independently rebuilt truth"},
+            {"label": "Audit trail",
+             "status": "PASS" if not audit.non_engine_actions else "FAIL",
+             "detail": f"{audit.total_events:,} events; every match and exception was "
+                       f"written by the deterministic engine "
+                       f"({json.dumps(audit.by_actor)})"},
             {"label": "Cash classification",
              "status": f"{cash['classification']['settlements']['rate']:.2%}",
              "detail": f"every settlement lands in exactly one cash bucket "
@@ -474,6 +528,7 @@ def build_view(run_dir: Path, database_path: Path) -> View:
         },
         tiers=tiers,
         trace=trace,
+        audit=audit,
         blocked_settlements=blocked,
         unexplained_credits=unexplained,
     )

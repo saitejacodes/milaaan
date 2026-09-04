@@ -334,14 +334,38 @@ truncated JSON, fenced malformed JSON, contradictory prose, and prompt injection
 in both questions and stored exception text — and asserts, byte for byte, that
 accounting state never changes.
 
-### Offline routing suite, honestly named
+### What is measured, and what is honestly not
 
-`make demo` runs an **offline routing and safety regression suite**, not an AI
-accuracy benchmark. In offline mode the router is deterministic code, so a
-perfect score proves the allow-list, the argument validator and the refusal path
-work as specified — not that a language model is good at finance. The emitted
-`agent_metrics.json` says which of the two was measured. Running the same suite
-with `--llm live` turns it into a real model evaluation.
+`agent_metrics.json` reports three separate things, because they answer
+different questions.
+
+| Section | Question | Offline result |
+|---|---|---|
+| `routing` | Does a finance question reach the right read-only tool? | 56 / 56 |
+| `safety` | Are requests to change accounting state refused? | 18 / 18 |
+| `hostile_model_outputs` | Given unusable, unapproved or malicious model output, does Milaan do the specified safe thing? | 26 / 26 — 16 refused, 9 safe fallbacks, **0 unsafe executions**, 0 crashes |
+
+The `routing` number is **not an AI accuracy benchmark**. In offline mode the
+router is deterministic code, so a perfect score proves the allow-list, argument
+validator and refusal path work as specified — not that a language model is good
+at finance. The artefact records which mode was measured, including provider and
+model when run live.
+
+`hostile_model_outputs` is the number that keeps its meaning without a key: it
+measures **Milaan's boundary**, not a model's ability, by driving the real live
+client through 26 hostile bodies — unknown tools, five different write tools,
+missing and extra fields, wrong argument names and types, wrong identifier
+families, empty and truncated and fenced and malformed JSON, JSON arrays,
+scalars, plain English, and a fabricated amount smuggled beside an approved
+tool. Accounting state is fingerprinted before and after.
+
+**No live-model accuracy number is published.** It would depend on a specific
+model and a key a judge cannot reproduce. Run it yourself with:
+
+```bash
+python -m milaan.cli agent-eval --run data/judge --db data/judge/milaan.db \
+  --out data/judge/agent_metrics_live.json --llm live
+```
 
 ---
 

@@ -198,6 +198,29 @@ def _integrity(st, view: View) -> None:
              "gate": view.metrics["gate"]}, expanded=False)
 
 
+def _audit(st, view: View) -> None:
+    audit = view.audit
+    st.subheader("Audit trail")
+    if audit.non_engine_actions:
+        st.error("A non-engine actor changed accounting state: "
+                 + ", ".join(audit.non_engine_actions))
+    else:
+        st.success("Every match and exception in this run was written by the "
+                   "deterministic engine.")
+    columns = st.columns(3)
+    columns[0].metric("Recorded events", f"{audit.total_events:,}")
+    columns[1].metric("Language-model calls", f"{audit.llm_calls:,}")
+    columns[2].metric("Non-engine state changes", len(audit.non_engine_actions))
+    st.dataframe([{"Actor": actor, "Events": count}
+                  for actor, count in audit.by_actor.items()],
+                 use_container_width=True, hide_index=True)
+    st.dataframe([{"Action": action, "Events": count}
+                  for action, count in audit.by_action.items()],
+                 use_container_width=True, hide_index=True)
+    st.caption("Most recent events")
+    st.dataframe(audit.recent, use_container_width=True, hide_index=True)
+
+
 def main() -> None:
     try:
         import streamlit as st
@@ -218,8 +241,8 @@ def main() -> None:
         return
 
     _first_screen(st, view)
-    scorecard, exceptions, evidence, ask, integrity = st.tabs(
-        ["Scorecard", "Exceptions", "Evidence", "Ask Milaan", "Integrity"]
+    scorecard, exceptions, evidence, ask, integrity, audit = st.tabs(
+        ["Scorecard", "Exceptions", "Evidence", "Ask Milaan", "Integrity", "Audit"]
     )
     with scorecard:
         _scorecard(st, view)
@@ -231,6 +254,8 @@ def main() -> None:
         _ask(st, view, args.run_dir, args.db)
     with integrity:
         _integrity(st, view)
+    with audit:
+        _audit(st, view)
 
 
 if __name__ == "__main__":

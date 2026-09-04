@@ -243,6 +243,40 @@ def _integrity(view: View) -> list[str]:
     ]
 
 
+def _audit(view: View) -> list[str]:
+    audit = view.audit
+    actors = "".join(
+        f"<tr><td>{_e(actor)}</td><td>{count:,}</td></tr>"
+        for actor, count in audit.by_actor.items()
+    )
+    actions = "".join(
+        f"<tr><td>{_e(action)}</td><td>{count:,}</td></tr>"
+        for action, count in audit.by_action.items()
+    )
+    recent = "".join(
+        f'<tr><td>{_e(row["ts"])}</td><td>{_e(row["actor"])}</td>'
+        f'<td>{_e(row["action"])}</td><td><code>{_e(row["payload"])}</code></td></tr>'
+        for row in audit.recent
+    )
+    verdict = ("Every match and exception in this run was written by the deterministic "
+               "engine." if not audit.non_engine_actions else
+               "A non-engine actor changed accounting state: "
+               + ", ".join(audit.non_engine_actions))
+    return [
+        "<h2>Audit trail</h2>",
+        f'<p class="{"pass" if not audit.non_engine_actions else "warning"}">{_e(verdict)}</p>',
+        f'<p class="muted">{audit.total_events:,} recorded events · '
+        f'{audit.llm_calls:,} language-model calls, none of which wrote anything.</p>',
+        '<div class="evidence">',
+        f"<div class=\"card\"><h3>By actor</h3><table><tr><th>Actor</th><th>Events</th></tr>{actors}</table></div>",
+        f"<div class=\"card\"><h3>By action</h3><table><tr><th>Action</th><th>Events</th></tr>{actions}</table></div>",
+        "</div>",
+        "<h3>Most recent events</h3>",
+        "<table><thead><tr><th>When</th><th>Actor</th><th>Action</th><th>Payload</th>"
+        f"</tr></thead><tbody>{recent}</tbody></table>",
+    ]
+
+
 def _tiers(view: View) -> list[str]:
     rows = "".join(
         f'<tr><td>{_e(row["plane"])}</td><td>{_e(row["tier"])}</td><td>{row["count"]:,}</td></tr>'
@@ -298,6 +332,7 @@ def render_report(run_dir: Path, database_path: Path, out: Path) -> str:
     parts += _trace(view.trace)
     parts += _exceptions(view)
     parts += _integrity(view)
+    parts += _audit(view)
     parts += _tiers(view)
     parts += _ask(view, run_dir, database_path)
     parts += [
