@@ -426,15 +426,15 @@ folding data generation into a throughput claim would flatter the engine.
 
 Results land in `data/benchmark.json` with full environment provenance. Do not
 trust the committed copy — regenerate it. For reference, the committed sweep
-recorded, on Python 3.12.13 / macOS arm64:
+recorded, on Python 3.12.13 / macOS-26.6.2-arm64-arm-64bit (arm64), at commit `591da1eb6195`:
 
 | Orders | Physical records | Median rec/s | Min | Max | Median wall | Gates | False matches |
 |---:|---:|---:|---:|---:|---:|---:|---:|
-| 50 | 125 | 5,000 | 3,735 | 5,083 | 25 ms | pass | 0 |
-| 200 | 435 | 13,625 | 12,794 | 14,000 | 32 ms | pass | 0 |
-| 1,200 | 2,464 | 33,753 | 32,653 | 33,795 | 73 ms | pass | 0 |
-| 5,000 | 10,159 | 42,329 | 42,183 | 43,732 | 240 ms | pass | 0 |
-| 10,000 | 20,291 | 43,637 | 43,636 | 44,744 | 464 ms | pass | 0 |
+| 50 | 125 | 5,000 | 4,704 | 5,083 | 25 ms | pass | 0 |
+| 200 | 435 | 13,182 | 13,152 | 13,212 | 33 ms | pass | 0 |
+| 1,200 | 2,464 | 29,687 | 22,264 | 30,085 | 83 ms | pass | 0 |
+| 5,000 | 10,159 | 37,792 | 37,626 | 37,835 | 269 ms | pass | 0 |
+| 10,000 | 20,291 | 39,248 | 39,162 | 39,292 | 517 ms | pass | 0 |
 
 Small sizes are dominated by fixed per-run cost (database creation, config
 loading), which is why 50 orders looks slower per record than 10,000. Correctness
