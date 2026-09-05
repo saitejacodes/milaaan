@@ -3,6 +3,7 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   test:
@@ -54,6 +55,62 @@ jobs:
             data/judge/report.html
             data/benchmark_smoke.json
           if-no-files-found: warn
+
+  # The full Track-04 throughput claim is proven on the exact commit being
+  # submitted. The benchmark file itself records git SHA, environment, all
+  # fifteen raw repetitions and every correctness gate; this job additionally
+  # binds that embedded SHA to GitHub's immutable GITHUB_SHA before upload.
+  full-benchmark:
+    name: exact-SHA full benchmark
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install benchmark dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[dev]'
+      - name: Run complete 5-size x 3-repetition benchmark
+        run: make benchmark
+      - name: Verify benchmark provenance and safety gates
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path("data/benchmark.json")
+          data = json.loads(path.read_text(encoding="utf-8"))
+          expected_sha = os.environ["EXPECTED_SHA"]
+          actual_sha = data["environment"]["git_sha"]
+          assert actual_sha == expected_sha, (actual_sha, expected_sha)
+
+          runs = data["raw_runs"]
+          assert len(runs) == 15, len(runs)
+          assert {row["requested_orders"] for row in runs} == {50, 200, 1200, 5000, 10000}
+          assert all(row["gate"]["status"] == "PASS" for row in runs)
+          assert all(row["truth_integrity"] == "PASS" for row in runs)
+          assert all(row["false_match_count"] == 0 for row in runs)
+          assert all(row["source_conservation"] == 1.0 for row in runs)
+          assert all(row["amount_delta_paise"] == 0 for row in runs)
+          assert all(result["repetitions"] == 3 for result in data["results"])
+          assert all(result["all_gates_passed"] for result in data["results"])
+          assert all(result["total_false_matches"] == 0 for result in data["results"])
+
+          print(f"exact-SHA benchmark VERIFIED for {actual_sha}: {len(runs)} raw runs")
+          PY
+      - name: Upload exact-SHA full benchmark
+        uses: actions/upload-artifact@v4
+        with:
+          name: milaan-full-benchmark-${{ github.sha }}
+          path: data/benchmark.json
+          if-no-files-found: error
 
   no-api-key-required:
     name: offline guarantee
