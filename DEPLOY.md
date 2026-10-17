@@ -48,7 +48,7 @@ Replace the path in the `git fetch` line with wherever this folder lives.
 git clone https://github.com/saitejacodes/milaaan.git ~/milaaan-github
 cd ~/milaaan-github
 git checkout -b milaan-upgrade
-git fetch /Users/saitejaveeramalla/testing/milaaan-main phase-4-presentation
+git fetch /Users/saitejaveeramalla/testing/milaaan-main phase-5-byok
 git cherry-pick $(git rev-list --reverse FETCH_HEAD | tail -n +2)
 git push -u origin milaan-upgrade
 ```
