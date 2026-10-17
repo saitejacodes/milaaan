@@ -40,24 +40,25 @@ Open http://localhost:7860.
 
 ## 1. Push the code to GitHub
 
-On your machine, inside the project folder:
+This working copy was created from a zip download, so its history is not connected
+to the GitHub repository. Replay the upgrade commits onto a fresh clone instead.
+Replace the path in the `git fetch` line with wherever this folder lives.
 
 ```bash
-git remote add origin https://github.com/saitejacodes/milaaan.git
-git push -u origin phase-1-audit phase-2-improvements phase-3-web-demo
+git clone https://github.com/saitejacodes/milaaan.git ~/milaaan-github
+cd ~/milaaan-github
+git checkout -b milaan-upgrade
+git fetch /Users/saitejaveeramalla/testing/milaaan-main phase-4-presentation
+git cherry-pick $(git rev-list --reverse FETCH_HEAD | tail -n +2)
+git push -u origin milaan-upgrade
 ```
 
-If `origin` already exists, skip the first line. Then open a pull request for
-each branch, or merge `phase-3-web-demo` (it contains phases 1 and 2) into `main`:
+The `tail -n +2` skips the first commit (the zip import itself). If a cherry-pick
+stops with a conflict, GitHub `main` has changed since the zip was downloaded:
+resolve the file, then run `git add -A` followed by `git cherry-pick --continue`.
 
-```bash
-git checkout main
-git merge --ff-only phase-3-web-demo
-git push origin main
-```
-
-If `main` has commits the branches don't, use `git merge phase-3-web-demo`
-instead of `--ff-only`.
+Then open a pull request from `milaan-upgrade` into `main` on GitHub. Check that CI
+passes, and merge. Deploy from the merged `main` (step 4 runs inside `~/milaaan-github`).
 
 ## 2. Create the Space
 
@@ -75,7 +76,7 @@ instead of `--ff-only`.
 
 ## 4. Deploy
 
-From the project folder, on the commit you want live:
+From `~/milaaan-github` on `main`, after merging:
 
 ```bash
 scripts/deploy_hf.sh <your-hf-username> milaan
