@@ -22,6 +22,9 @@ def money(paise: int) -> str:
     return f"{sign}₹{whole:,}.{fraction:02d}"
 
 
+EMPTY_RESULT_EVIDENCE = "functional_metrics.json"
+
+
 class FinanceTools:
     """Small allow-listed query surface; no method can create a match or posting."""
 
@@ -113,7 +116,8 @@ class FinanceTools:
         answer = (f"{len(items)} settlement batches are blocked by control exceptions, "
                   f"representing {money(total)} of gross settlement evidence. "
                   "Expected-but-unbanked items are reported separately in cash position.")
-        evidence = [str(item["settlement_id"]) for item in items[:10]]
+        # An empty result is still a verified fact; cite the gated metrics it came from.
+        evidence = [str(item["settlement_id"]) for item in items[:10]] or [EMPTY_RESULT_EVIDENCE]
         return {"status": "ok", "tool": "get_blocked_exposure", "answer": answer,
                 "facts": {"total_paise": total, "items": items}, "evidence_ids": evidence}
 
@@ -260,7 +264,8 @@ class FinanceTools:
             answer = "No open exceptions in this verified run."
         return {"status": "ok", "tool": "summarize_exception_queue", "answer": answer,
                 "facts": {"total": len(rows), "by_reason_code": items},
-                "evidence_ids": [item["exception_ids"][0] for item in items[:10]]}
+                "evidence_ids": [item["exception_ids"][0] for item in items[:10]]
+                                or [EMPTY_RESULT_EVIDENCE]}
 
     def list_unexplained_bank_credits(self) -> dict[str, Any]:
         """Bank money Milaan could not attribute to any settlement batch."""
@@ -282,7 +287,8 @@ class FinanceTools:
                   "Every bank credit in this run is explained by a verified settlement batch.")
         return {"status": "ok", "tool": "list_unexplained_bank_credits", "answer": answer,
                 "facts": {"total_paise": total, "items": items},
-                "evidence_ids": [str(item["line_id"]) for item in items[:10]]}
+                "evidence_ids": [str(item["line_id"]) for item in items[:10]]
+                                or [EMPTY_RESULT_EVIDENCE]}
 
     def explain_why_unmatched(self, entity_id: str) -> dict[str, Any]:
         """State, in verified terms, why one record carries no accounting match."""

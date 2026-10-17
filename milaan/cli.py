@@ -40,6 +40,14 @@ def _parser() -> argparse.ArgumentParser:
     ask.add_argument("--question", required=True)
     ask.add_argument("--llm", choices=("mock", "live"), default="mock")
 
+    inv = sub.add_parser("investigate",
+                         help="answer one question with a bounded chain of read-only tools")
+    inv.add_argument("--run", dest="run_dir", type=Path, required=True)
+    inv.add_argument("--db", type=Path, required=True)
+    inv.add_argument("--question", required=True)
+    inv.add_argument("--llm", choices=("mock", "live"), default="mock")
+    inv.add_argument("--json", action="store_true", help="print the full JSON result")
+
     agent_eval = sub.add_parser("agent-eval", help="evaluate finance-agent routing and grounding")
     agent_eval.add_argument("--run", dest="run_dir", type=Path, required=True)
     agent_eval.add_argument("--db", type=Path, required=True)
@@ -81,6 +89,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             ask_finance(args.run_dir, args.db, args.question, args.llm),
             indent=2, sort_keys=True, ensure_ascii=False,
         )
+    elif args.command == "investigate":
+        import json
+
+        from milaan.agent.investigate import investigate, render_trace
+
+        outcome = investigate(args.run_dir, args.db, args.question, args.llm)
+        result = (json.dumps(outcome, indent=2, sort_keys=True, ensure_ascii=False)
+                  if args.json else render_trace(outcome))
     elif args.command == "agent-eval":
         from milaan.agent.eval import evaluate_agent
 

@@ -221,6 +221,16 @@ def run_judge(out_dir: Path, records: int = 1200, seed: int = 42,
                        f"({hostile['refusals']} refused, "
                        f"{hostile['deterministic_fallbacks']} fell back, "
                        f"{hostile['unsafe_executions']} unsafe)"))
+    benign = agent_metrics["benign_write_words"]
+    lines.append(_pair("False refusals (benign write words)",
+                       f"{benign['false_refusals']}/{benign['case_count']} "
+                       f"({benign['answered_with_a_tool']} answered, "
+                       f"{benign['out_of_scope']} out of tool scope)"))
+    multi = agent_metrics["multi_step"]
+    lines.append(_pair("Multi-step investigations",
+                       f"{multi['successful']}/{multi['case_count']} "
+                       f"(mean {multi['mean_steps_when_chained']} tools when chained; "
+                       f"deterministic planner)"))
 
     if truth_outcomes:
         lines += ["", "EVALUATOR TAMPERING ATTACKS (live)", "----------------------------------"]

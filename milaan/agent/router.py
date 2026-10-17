@@ -125,6 +125,7 @@ def deterministic_route(question: str) -> dict[str, Any] | None:
         return {"tool": "get_blocked_exposure", "arguments": {}}
     if any(token in lowered for token in (
         "match rate", "match coverage", "accuracy", "accurate", "precision", "recall",
+        "reconcile", "how many orders", "matched", "false match",
     )):
         return {"tool": "get_match_metrics", "arguments": {}}
     if any(token in lowered for token in (
@@ -212,6 +213,39 @@ def _record_query(database_path: Path, run_id: str, question: str,
         conn.close()
 
 
+def select_tool(question: str, tools: FinanceTools, llm_mode: str
+                ) -> tuple[tuple[str, dict[str, str]] | None, str, str, Any | None]:
+    """Choose one allow-listed tool for a question that already passed the boundary.
+
+    Returns ``(selection, routing_mode, routing_note, llm_call)``. ``selection`` is
+    ``None`` when no approved tool fits or the model named an unapproved one.
+    """
+    if llm_mode != "live":
+        return (_validated_selection(deterministic_route(question), tools),
+                "deterministic", "keyword_and_identifier_router", None)
+    client = LiveLLM()
+    try:
+        raw = client.complete_json("finance_tool_select", _selection_prompt(question))
+        call = client.last_call
+        selection = _validated_selection(raw, tools)
+        routing_mode = "live_llm"
+        # A syntactically usable answer that names an unapproved tool, or
+        # supplies unapproved arguments, is refused outright. It is never
+        # downgraded to deterministic routing, because a judge must be able
+        # to see that the allow-list rejected the model.
+        routing_note = "allow_list_validated" if selection else "invalid_selection_refused"
+    except (ProviderError, ValueError, TypeError, KeyError, OSError) as exc:
+        # Everything the provider layer can throw -- transport failure,
+        # unusable envelope, unusable model content, unavailable cache --
+        # lands here and degrades to the offline deterministic router. A
+        # malformed model body must never reach a judge as a stack trace.
+        selection = _validated_selection(deterministic_route(question), tools)
+        routing_mode = "deterministic_fallback"
+        routing_note = f"live_provider_unusable:{type(exc).__name__}"
+        call = getattr(client, "last_call", None)
+    return selection, routing_mode, routing_note, call
+
+
 def ask_finance(run_dir: Path, database_path: Path, question: str,
                 llm_mode: str = "mock") -> dict[str, Any]:
     """Route a question to one deterministic tool; model prose never reaches output."""
@@ -220,11 +254,6 @@ def ask_finance(run_dir: Path, database_path: Path, question: str,
     if llm_mode not in {"mock", "live"}:
         raise ValueError("llm_mode must be 'mock' or 'live'")
     tools = FinanceTools(run_dir, database_path)
-    selection: tuple[str, dict[str, str]] | None = None
-    call = None
-    routing_mode = "deterministic"
-    routing_note = "keyword_and_identifier_router"
-
     boundary = authority_boundary(question)
     if boundary is not None:
         return _finish(database_path, question, tools.refusal(boundary), {
@@ -232,29 +261,7 @@ def ask_finance(run_dir: Path, database_path: Path, question: str,
             "note": "read_only_boundary_enforced",
         }, None)
 
-    if llm_mode == "live":
-        client = LiveLLM()
-        try:
-            raw = client.complete_json("finance_tool_select", _selection_prompt(question))
-            call = client.last_call
-            selection = _validated_selection(raw, tools)
-            routing_mode = "live_llm"
-            # A syntactically usable answer that names an unapproved tool, or
-            # supplies unapproved arguments, is refused outright. It is never
-            # downgraded to deterministic routing, because a judge must be able
-            # to see that the allow-list rejected the model.
-            routing_note = "allow_list_validated" if selection else "invalid_selection_refused"
-        except (ProviderError, ValueError, TypeError, KeyError, OSError) as exc:
-            # Everything the provider layer can throw -- transport failure,
-            # unusable envelope, unusable model content, unavailable cache --
-            # lands here and degrades to the offline deterministic router. A
-            # malformed model body must never reach a judge as a stack trace.
-            selection = _validated_selection(deterministic_route(question), tools)
-            routing_mode = "deterministic_fallback"
-            routing_note = f"live_provider_unusable:{type(exc).__name__}"
-            call = getattr(client, "last_call", None)
-    else:
-        selection = _validated_selection(deterministic_route(question), tools)
+    selection, routing_mode, routing_note, call = select_tool(question, tools, llm_mode)
 
     if selection is None:
         result = tools.refusal("The question is outside Milaan's verified finance tool scope.")
