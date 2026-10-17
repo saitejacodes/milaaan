@@ -15,8 +15,10 @@ from milaan.llm.live import LiveLLM, ProviderError
 
 ORDER_RE = re.compile(r"\border_[A-Za-z0-9_-]+\b", re.IGNORECASE)
 SETTLEMENT_RE = re.compile(r"\bsetl_[A-Za-z0-9_-]+\b", re.IGNORECASE)
-EXCEPTION_RE = re.compile(r"\b(?:EXC-)?(\d{1,8})\b", re.IGNORECASE)
-ENTITY_RE = re.compile(r"\b(?:order|pay|rfnd|adj|setl|bank)_[A-Za-z0-9_-]+\b", re.IGNORECASE)
+# "EXC-12", "exception 12", "exception #12" -- but not "exceptions in 2024".
+EXCEPTION_REF_RE = re.compile(r"\bEXC-?(\d{1,8})\b|\bexception\s+#?(\d{1,6})\b(?!\s*%)",
+                              re.IGNORECASE)
+ENTITY_RE =re.compile(r"\b(?:order|pay|rfnd|adj|setl|bank)_[A-Za-z0-9_-]+\b", re.IGNORECASE)
 
 # Milaan's question layer is read-only by construction: no tool in the registry
 # can write. These patterns add a second, earlier boundary so a request to
@@ -24,10 +26,31 @@ ENTITY_RE = re.compile(r"\b(?:order|pay|rfnd|adj|setl|bank)_[A-Za-z0-9_-]+\b", r
 # being quietly satisfied with a read-only report that happens to share a
 # keyword. The check runs before any model is consulted, so no provider -- and
 # no instruction smuggled into a question -- can route around it.
-WRITE_INTENT_RE = re.compile(
-    r"\b(?:delete|drop|truncate|remove|update|modify|edit|alter|amend|change|set|"
+_WRITE_VERBS = (
+    r"(?:delete|drop|truncate|remove|update|modify|edit|alter|amend|change|set|"
     r"overwrite|create|insert|post|approve|release|mark|write|send|transfer|"
-    r"reconcile|reconciled|unblock|clear|falsify|backdate)\b",
+    r"reconcile|unblock|clear|falsify|backdate|email|pay)"
+)
+# A write verb only signals intent when it is used as a command: at the start
+# of a clause ("Delete all exceptions", "... and then delete ..."), or after a
+# request cue ("can you mark ...", "I want you to post ..."). The same verb in
+# a question about state ("How many orders did we reconcile?", "Is it clear
+# why cash is blocked?") is an investigation and is answered. The boundary
+# still fails safe: no tool can write, so a missed command only ever yields a
+# read-only report.
+_CLAUSE_START = (r"(?:^|[.!?;:,]|\b(?:and|then|also|now|please|pls|just|kindly|"
+                 r"so|first|next|finally)\b)")
+_REQUEST_CUE = (
+    r"\b(?:can|could|would|will)\s+(?:you|u|we|milaan)|\bi\s+(?:want|need)\s+(?:you\s+)?to|"
+    r"\byou\s+(?:should|must|need\s+to|have\s+to)|\bgo\s+ahead\s+and|\blet'?s|\blet\s+us|"
+    r"\bhelp\s+me|\bhow\s+(?:do|can)\s+i|\bhow\s+to|\bwe\s+need\s+to|\btry\s+to|"
+    r"\bis\s+it\s+possible\s+to|\bmake\s+sure\s+(?:you|to)"
+)
+WRITE_INTENT_RE = re.compile(
+    rf"{_CLAUSE_START}\s*(?:(?:all|every|the|this|that)\s+)?{_WRITE_VERBS}\b"
+    rf"|(?:{_REQUEST_CUE})\s+(?:\w+\s+)?{_WRITE_VERBS}\b"
+    # A write-tool name, e.g. "call delete_matches" or "use update_bank_line".
+    rf"|\b{_WRITE_VERBS}_[a-z_]+\b",
     re.IGNORECASE,
 )
 AUTHORITY_OVERRIDE_RE = re.compile(
@@ -73,11 +96,14 @@ def deterministic_route(question: str) -> dict[str, Any] | None:
     if settlement:
         return {"tool": "trace_settlement",
                 "arguments": {"settlement_id": settlement.group(0)}}
-    if "exception" in lowered or "exc-" in lowered:
-        exception = EXCEPTION_RE.search(text)
-        if exception:
-            return {"tool": "get_exception",
-                    "arguments": {"exception_id": f"EXC-{int(exception.group(1)):04d}"}}
+    exception = EXCEPTION_REF_RE.search(text)
+    if exception:
+        return {"tool": "get_exception",
+                "arguments": {"exception_id": f"EXC-{int(exception.group(1) or exception.group(2)):04d}"}}
+    if entity:
+        # Any other record identifier (pay_, bank_, rfnd_, adj_): report its state.
+        return {"tool": "explain_why_unmatched",
+                "arguments": {"entity_id": entity.group(0)}}
     if any(token in lowered for token in (
         "throughput", "records per second", "how fast", "reconciliation fast", "latency",
     )):
