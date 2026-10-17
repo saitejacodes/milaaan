@@ -1,0 +1,12 @@
+[server]
+headless = true
+maxUploadSize = 5
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "viewer"
+
+[theme]
+primaryColor = "#D99A2B"

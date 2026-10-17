@@ -1169,12 +1169,18 @@ def _ai_outcomes() -> list[AttackOutcome]:
                 for item in run_probes(bench.dir, bench.dir / "m.db")]
 
 
+def run_everything() -> list[AttackOutcome]:
+    """Every registered attack plus the AI-authority probes, in print order."""
+    outcomes = list(run_all())
+    outcomes.extend(_ai_outcomes())
+    return outcomes
+
+
 def main() -> int:
     """Print the adversarial scorecard. Exit non-zero if anything is unsafe."""
     print("MILAAN ADVERSARIAL SAFETY")
     print("=" * 63)
-    outcomes = list(run_all())
-    outcomes.extend(_ai_outcomes())
+    outcomes = run_everything()
     width = max(len(item.label) for item in outcomes) + 2
     for item in outcomes:
         dots = "." * max(3, width - len(item.label))

@@ -525,3 +525,26 @@ def build_view(run_dir: Path, database_path: Path) -> View:
         blocked_settlements=blocked,
         unexplained_credits=unexplained,
     )
+
+
+def build_exception_views(database_path: Path) -> list[ExceptionView]:
+    """Exception rows for any run database, scored or not.
+
+    :func:`build_view` refuses a run without a passing evaluation gate, because
+    its accuracy numbers would not be quotable. An exception queue makes no
+    accuracy claim, so this works for unscored runs over uploaded files too.
+    """
+    conn = connect(database_path)
+    try:
+        batches = {row["settlement_id"]: int(row["amount_paise"])
+                   for row in conn.execute("SELECT settlement_id,amount_paise FROM settlement_batches")}
+        tainted = {row["settlement_id"] for row in
+                   conn.execute("SELECT settlement_id FROM settlement_batches WHERE tainted=1")}
+        bank = {row["line_id"]: int(row["credit_paise"])
+                for row in conn.execute("SELECT line_id,credit_paise FROM raw_bank")}
+        orders = {row["order_id"]: int(row["amount_paise"])
+                  for row in conn.execute("SELECT order_id,amount_paise FROM raw_orders")}
+        matched = {row["entity_id"] for row in conn.execute("SELECT entity_id FROM match_members")}
+        return _build_exceptions(conn, batches, bank, orders, tainted, matched)
+    finally:
+        conn.close()
