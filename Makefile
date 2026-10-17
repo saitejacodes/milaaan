@@ -1,5 +1,5 @@
 .PHONY: test gen run run-live eval report ask agent-eval benchmark benchmark-smoke \
-        dashboard preview sample demo demo-live judge adversarial ci clean
+        dashboard web preview sample demo demo-live judge adversarial ci clean
 
 PYTHON ?= python
 CLI ?= $(PYTHON) -m milaan.cli
@@ -51,6 +51,10 @@ benchmark:
 ## Fast CI variant of the same command.
 benchmark-smoke:
 	$(CLI) benchmark --out data/benchmark_smoke.json --sizes 50,200,1200 --repetitions 3
+
+## Public web demo (the same app that runs on Hugging Face Spaces).
+web:
+	streamlit run milaan/webapp.py
 
 dashboard:
 	streamlit run milaan/dashboard.py -- --run $(DATA) --db $(DATA)/milaan.db

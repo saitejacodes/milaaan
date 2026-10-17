@@ -1,0 +1,35 @@
+name: Deploy demo to Hugging Face
+
+# Redeploys the public demo after every push to main. Does nothing until the
+# repository has an HF_TOKEN secret (write scope) and an HF_SPACE variable
+# such as "saitejacodes/milaan".
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Push to the Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE: ${{ vars.HF_SPACE }}
+        run: |
+          if [ -z "$HF_TOKEN" ] || [ -z "$HF_SPACE" ]; then
+            echo "HF_TOKEN or HF_SPACE not configured; skipping deploy."
+            exit 0
+          fi
+          STAGE="$(mktemp -d)"
+          git archive HEAD | tar -x -C "$STAGE"
+          cp deploy/huggingface/README.md "$STAGE/README.md"
+          rm -rf "$STAGE/data" "$STAGE/docs"
+          find "$STAGE" -type f \( -name '*.png' -o -name '*.jpg' -o -name '*.gif' \) -delete
+          cd "$STAGE"
+          git init -q -b main
+          git add -A
+          git -c user.name=github-actions -c user.email=actions@github.com \
+            commit -q -m "Deploy ${GITHUB_SHA::7}"
+          git push --force "https://user:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}" main

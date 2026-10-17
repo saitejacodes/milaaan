@@ -3,6 +3,7 @@
 # Usage: scripts/deploy_hf.sh <hf-username> [space-name]
 # Git asks for your Hugging Face username and an access token (write scope)
 # as the password. The token is never stored by this script.
+# DRY_RUN=1 builds and lists the staged files without pushing.
 set -euo pipefail
 USER_NAME="${1:?usage: scripts/deploy_hf.sh <hf-username> [space-name]}"
 SPACE="${2:-milaan}"
@@ -22,5 +23,10 @@ git init -q -b main
 git add -A
 git -c user.name="deploy" -c user.email="deploy@localhost" \
   commit -q -m "Deploy $(git -C "$ROOT" rev-parse --short HEAD)"
+if [ "${DRY_RUN:-0}" = "1" ]; then
+  git ls-files
+  echo "DRY_RUN: staged $(git ls-files | wc -l | tr -d " ") files; nothing pushed."
+  exit 0
+fi
 git push --force "https://huggingface.co/spaces/$USER_NAME/$SPACE" main
 echo "Pushed. Build log: https://huggingface.co/spaces/$USER_NAME/$SPACE?logs=build"
