@@ -8,18 +8,11 @@ from pathlib import Path
 from typing import Any, Callable
 
 from milaan.db import reading
+from milaan.money import format_paise
 
 
 def money(paise: int) -> str:
-    """Format signed integer paise without ever going through a float.
-
-    ``paise / 100`` is exact for every amount this system will see, but money
-    formatting is not the place to rely on that. Integer division has no
-    magnitude at which it starts rounding.
-    """
-    sign = "-" if paise < 0 else ""
-    whole, fraction = divmod(abs(int(paise)), 100)
-    return f"{sign}₹{whole:,}.{fraction:02d}"
+    return format_paise(paise)
 
 
 EMPTY_RESULT_EVIDENCE = "functional_metrics.json"

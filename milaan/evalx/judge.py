@@ -25,6 +25,7 @@ from milaan.evalx.truth import config_hashes
 from milaan.generator.emit import generate_to_directory
 from milaan.generator.manifest import GENERATOR_VERSION
 from milaan.report.render import render_report
+from milaan.money import format_paise
 
 
 RULE = "=" * 68
@@ -43,15 +44,7 @@ TIER_NAMES = {
 
 
 def money(paise: int) -> str:
-    """Format signed integer paise without ever going through a float.
-
-    ``paise / 100`` is exact for every amount this system will see, but money
-    formatting is not the place to rely on that. Integer division has no
-    magnitude at which it starts rounding.
-    """
-    sign = "-" if paise < 0 else ""
-    whole, fraction = divmod(abs(int(paise)), 100)
-    return f"{sign}₹{whole:,}.{fraction:02d}"
+    return format_paise(paise)
 
 
 def _git_sha() -> str:
