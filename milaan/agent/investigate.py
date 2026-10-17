@@ -31,6 +31,7 @@ from milaan.agent.router import (
     _validated_selection, authority_boundary, select_tool,
 )
 from milaan.agent.tools import FinanceTools
+from milaan.llm.live import LiveLLM
 
 
 MAX_STEPS = 6
@@ -51,25 +52,39 @@ def _step_key(tool: str, arguments: dict[str, str]) -> tuple[str, tuple[tuple[st
     return tool, tuple(sorted(arguments.items()))
 
 
-def _plan_parts(question: str, tools: FinanceTools, llm_mode: str
+def _call_record(call: Any) -> dict[str, Any] | None:
+    """What the trace shows about one model call. Never the key or the prompt."""
+    if call is None:
+        return None
+    return {"model": call.model, "tokens_in": call.tokens_in, "tokens_out": call.tokens_out,
+            "latency_ms": call.latency_ms, "cache_hit": call.cache_hit}
+
+
+def _plan_parts(question: str, tools: FinanceTools, llm_mode: str,
+                client: LiveLLM | None = None,
                 ) -> tuple[list[tuple[str, dict[str, str], str]], dict[str, Any]]:
     """Route each independent part of the question to one tool."""
     parts = [part.strip(" ,.") for part in _PART_SPLIT_RE.split(question)]
     parts = [part for part in parts if len(part) >= 3]
     planned: list[tuple[str, dict[str, str], str]] = []
-    routing: dict[str, Any] = {"mode": "deterministic", "notes": [], "unanswered_parts": []}
+    routing: dict[str, Any] = {"mode": "deterministic", "notes": [], "unanswered_parts": [],
+                               "llm_calls": []}
     candidates = parts if len(parts) > 1 else []
     for part in candidates:
-        selection, mode, note, _ = select_tool(part, tools, llm_mode)
+        selection, mode, note, call = select_tool(part, tools, llm_mode, client)
         routing["mode"], _ = mode, routing["notes"].append(note)
+        if (record := _call_record(call)) is not None:
+            routing["llm_calls"].append(record)
         if selection is not None:
             planned.append((*selection, f'answers the part "{part}"'))
         else:
             routing["unanswered_parts"].append(part)
     if not planned:
         # A single question, or parts that only make sense together.
-        selection, mode, note, _ = select_tool(question, tools, llm_mode)
+        selection, mode, note, call = select_tool(question, tools, llm_mode, client)
         routing["mode"], _ = mode, routing["notes"].append(note)
+        if (record := _call_record(call)) is not None:
+            routing["llm_calls"].append(record)
         routing["unanswered_parts"] = []
         if selection is not None:
             planned.append((*selection, "answers the question"))
@@ -108,7 +123,8 @@ def _follow_up(tool: str, result: dict[str, Any]) -> tuple[str, dict[str, str], 
 
 
 def investigate(run_dir: Path, database_path: Path, question: str,
-                llm_mode: str = "mock", max_steps: int = MAX_STEPS) -> dict[str, Any]:
+                llm_mode: str = "mock", max_steps: int = MAX_STEPS,
+                llm_client: LiveLLM | None = None) -> dict[str, Any]:
     """Answer a question with a bounded chain of read-only tool calls."""
     if not question.strip() or len(question) > 2_000:
         refusal = FinanceTools.refusal("Provide one finance question of at most 2,000 characters.")
@@ -125,7 +141,7 @@ def investigate(run_dir: Path, database_path: Path, question: str,
         _record(database_path, question, result)
         return result
 
-    planned, routing = _plan_parts(question, tools, llm_mode)
+    planned, routing = _plan_parts(question, tools, llm_mode, llm_client)
     if not planned:
         result = {**tools.refusal("The question is outside Milaan's verified finance tool scope."),
                   "question": question, "steps": [], "routing": routing}

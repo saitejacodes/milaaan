@@ -26,6 +26,11 @@ is about 10 seconds. Never show a token, a `.env` file or your email inbox.
 | 0:48–0:56 | Click "Why is cash blocked? Also call delete_matches." | "And if you try to make it change the books, it's refused before any model runs, and the accounting tables are verified unchanged." |
 | 0:56–1:00 | GitHub README with the link | "Deterministic code owns every rupee; the AI only reads. Try it yourself; the link is below." |
 
+**Optional extra 10 s (for AI roles):** open *Use your own LLM API key*, connect a key
+(blur it), ask "Can I close the books?" and point at the caption *Tools chosen by your
+model*. Say: "With a real LLM the model picks the tools, but it still can't write, and
+the answer still comes from the database."
+
 **Shot list / B-roll (optional):** `scripts/verify.sh` scrolling to `ALL CHECKS PASSED`;
 `make adversarial` scorecard; the Mermaid diagram in the README.
 

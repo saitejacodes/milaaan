@@ -213,17 +213,20 @@ def _record_query(database_path: Path, run_id: str, question: str,
         conn.close()
 
 
-def select_tool(question: str, tools: FinanceTools, llm_mode: str
+def select_tool(question: str, tools: FinanceTools, llm_mode: str,
+                client: LiveLLM | None = None,
                 ) -> tuple[tuple[str, dict[str, str]] | None, str, str, Any | None]:
     """Choose one allow-listed tool for a question that already passed the boundary.
 
     Returns ``(selection, routing_mode, routing_note, llm_call)``. ``selection`` is
     ``None`` when no approved tool fits or the model named an unapproved one.
+    ``client`` lets a caller supply per-user provider settings (the web demo's
+    bring-your-own-key mode) instead of the process environment.
     """
     if llm_mode != "live":
         return (_validated_selection(deterministic_route(question), tools),
                 "deterministic", "keyword_and_identifier_router", None)
-    client = LiveLLM()
+    client = client or LiveLLM()
     try:
         raw = client.complete_json("finance_tool_select", _selection_prompt(question))
         call = client.last_call
@@ -247,7 +250,7 @@ def select_tool(question: str, tools: FinanceTools, llm_mode: str
 
 
 def ask_finance(run_dir: Path, database_path: Path, question: str,
-                llm_mode: str = "mock") -> dict[str, Any]:
+                llm_mode: str = "mock", llm_client: LiveLLM | None = None) -> dict[str, Any]:
     """Route a question to one deterministic tool; model prose never reaches output."""
     if not question.strip() or len(question) > 2_000:
         return FinanceTools.refusal("Provide one finance question of at most 2,000 characters.")
@@ -261,7 +264,8 @@ def ask_finance(run_dir: Path, database_path: Path, question: str,
             "note": "read_only_boundary_enforced",
         }, None)
 
-    selection, routing_mode, routing_note, call = select_tool(question, tools, llm_mode)
+    selection, routing_mode, routing_note, call = select_tool(question, tools, llm_mode,
+                                                              llm_client)
 
     if selection is None:
         result = tools.refusal("The question is outside Milaan's verified finance tool scope.")

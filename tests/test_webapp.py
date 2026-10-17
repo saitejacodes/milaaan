@@ -68,6 +68,22 @@ class WebAppTests(unittest.TestCase):
         self.assert_no_exception(app)
         self.assertTrue(any("Gate: PASS" in item.value for item in app.success))
 
+    def test_bring_your_own_key_panel_is_offered_and_offline_is_default(self) -> None:
+        self.assert_no_exception(self.app)
+        titles = [item.label for item in self.app.expander]
+        self.assertTrue(any("use your own LLM API key" in title for title in titles), titles)
+        markdown = " ".join(item.value for item in self.app.markdown)
+        self.assertIn("offline deterministic router, no API key", markdown)
+
+    def test_host_can_disable_bring_your_own_key(self) -> None:
+        os.environ["MILAAN_DEMO_BYOK"] = "0"
+        try:
+            app = AppTest.from_file(APP, default_timeout=120).run()
+        finally:
+            os.environ.pop("MILAAN_DEMO_BYOK")
+        self.assert_no_exception(app)
+        self.assertFalse(any("API key" in item.label for item in app.expander))
+
     def test_exception_explorer_shows_money_and_next_action(self) -> None:
         self.assert_no_exception(self.app)
         labels = [metric.label for metric in self.app.metric]

@@ -69,6 +69,12 @@ The arrow from the AI layer into the database is **read-only**. No tool can writ
 write request is refused before any model runs, and a model may only *select* an
 allow-listed tool. The answer text always comes from the database.
 
+In the live demo the agent runs **offline by default** (deterministic router, no key,
+no cost). Visitors can **connect their own LLM key** (OpenAI, Anthropic, Gemini or any
+OpenAI-compatible API) for their session. The model then picks the tools, under
+exactly the same boundary. The key stays in that session's memory only: never put in
+environment variables, cached, logged or stored.
+
 Built for **Razorpay Buildathon · Track 04 — AI Finance Controller**.
 [Verified report](https://htmlpreview.github.io/?https://github.com/saitejacodes/milaaan/blob/main/data/samples/run42/report.html) ·
 [Deploy the demo](DEPLOY.md) ·
@@ -578,6 +584,17 @@ Profiles: `clean` (no injected anomalies), `mixed` (the default benchmark),
 ---
 
 ## Bring your own LLM (optional)
+
+**In the web demo:** open *Ask the agent → Use your own LLM API key*, choose a provider,
+paste a key and press *Connect and test*. The key is held in a per-session settings
+object (`LLMSettings`), never written to `os.environ` (which every visitor would
+share), never cached, and sent only to the chosen provider. Gemini keys travel in a
+header rather than the URL, provider errors carry only a status code, and custom base
+URLs must be public `https://` addresses. A host can turn the panel off with
+`MILAAN_DEMO_BYOK=0`. `tests/test_byok.py` checks that the key never reaches the result,
+the audit log, `llm_calls`, the environment or any `repr`.
+
+**From the command line:**
 
 The demo, the benchmark, the adversarial board and judge mode all run with **no
 API key**. Live mode is optional and adds only one capability: the model may

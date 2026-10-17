@@ -124,7 +124,10 @@ class ProviderAdapterTests(unittest.TestCase):
             endpoint,
             "https://generativelanguage.googleapis.com/v1beta/models/test-model:generateContent",
         )
-        self.assertEqual(kwargs["params"], {"key": "secret"})
+        # The key travels in a header, never in the URL.
+        self.assertIsNone(kwargs["params"])
+        self.assertEqual(kwargs["headers"]["x-goog-api-key"], "secret")
+        self.assertNotIn("secret", endpoint)
         self.assertEqual(kwargs["json"]["generationConfig"]["responseMimeType"],
                          "application/json")
         self.assertEqual(client.last_call.tokens_in, 17)

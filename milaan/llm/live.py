@@ -15,6 +15,7 @@ import os
 import re
 import sqlite3
 import time
+from dataclasses import dataclass
 from typing import Any
 from urllib.parse import quote
 
@@ -107,8 +108,34 @@ def _nonnegative_int(name: str, default: int = 0) -> int:
     return value
 
 
+@dataclass(frozen=True)
+class LLMSettings:
+    """Explicit provider settings, used instead of process environment variables.
+
+    A shared server (the public web demo) must never put a visitor's key into
+    ``os.environ``: environment variables are process-wide, so every other
+    visitor's requests would use it. The key lives only in this object.
+    """
+
+    provider: str
+    model: str
+    api_key: str = ""
+    base_url: str = ""
+    json_mode: str = "native"
+    timeout_seconds: float = 30.0
+    max_tokens: int = 600
+
+    def __repr__(self) -> str:  # never print the key, even in a traceback
+        return (f"LLMSettings(provider={self.provider!r}, model={self.model!r}, "
+                f"api_key={'***' if self.api_key else ''!r}, base_url={self.base_url!r})")
+
+
 class LiveLLM:
-    def __init__(self) -> None:
+    def __init__(self, settings: LLMSettings | None = None, use_cache: bool = True) -> None:
+        self.use_cache = use_cache
+        if settings is not None:
+            self._init_from_settings(settings)
+            return
         initialization_errors: list[str] = []
         try:
             load_environment()
@@ -137,6 +164,23 @@ class LiveLLM:
         self.initialization_error = "; ".join(initialization_errors) or None
         label = f"{self.provider_name}:{self.model}" if self.model else "unconfigured"
         self.last_call = LLMCall(model=label)
+
+    def _init_from_settings(self, settings: LLMSettings) -> None:
+        self.provider_name = settings.provider.strip().lower()
+        self.provider = _PROVIDER_ALIASES.get(self.provider_name, "")
+        self.model = settings.model.strip()
+        self.api_key = settings.api_key.strip()
+        self.base_url = (settings.base_url.strip()
+                         or _DEFAULT_BASE_URLS.get(self.provider_name, "")).rstrip("/")
+        self.json_mode = settings.json_mode
+        self.timeout_seconds = float(settings.timeout_seconds)
+        self.max_tokens = int(settings.max_tokens)
+        self.initialization_error = None
+        self.last_call = LLMCall(
+            model=f"{self.provider_name}:{self.model}" if self.model else "unconfigured")
+
+    def __repr__(self) -> str:  # never print the key, even in a traceback
+        return f"LiveLLM(provider={self.provider_name!r}, model={self.model!r})"
 
     def _configuration_error(self) -> str | None:
         if self.initialization_error:
@@ -213,7 +257,10 @@ class LiveLLM:
         }
         if self.json_mode == "native":
             body["generationConfig"]["responseMimeType"] = "application/json"
-        return endpoint, {"Content-Type": "application/json"}, body, {"key": self.api_key}
+        # The key travels in a header, never in the URL, so it cannot appear in
+        # an exception message, a proxy log or a browser history.
+        return endpoint, {"Content-Type": "application/json",
+                          "x-goog-api-key": self.api_key}, body, None
 
     def _request(self, prompt: str) -> tuple[str, dict[str, str], dict, dict | None]:
         if self.provider == "openai-compatible":
@@ -247,10 +294,13 @@ class LiveLLM:
         if problem:
             raise ProviderError(f"live LLM is not configured: {problem}; canonical templates remain active")
         key = self._key(purpose, prompt)
-        try:
-            cache_context = ResponseCache()
-        except (sqlite3.Error, OSError) as exc:
-            raise ProviderError(f"response cache is unavailable: {exc}") from exc
+        if self.use_cache:
+            try:
+                cache_context = ResponseCache()
+            except (sqlite3.Error, OSError) as exc:
+                raise ProviderError(f"response cache is unavailable: {exc}") from exc
+        else:
+            cache_context = _NoCache()
         with cache_context as cache:
             cached = cache.get(key)
             if cached is not None:
@@ -275,7 +325,11 @@ class LiveLLM:
                 response.raise_for_status()
                 payload = response.json()
             except (httpx.HTTPError, json.JSONDecodeError) as exc:
-                raise ProviderError(f"{self.provider_name} request failed: {exc}") from exc
+                # Status code or exception type only: httpx messages embed the
+                # request URL, and no request detail belongs in an error.
+                status = getattr(getattr(exc, "response", None), "status_code", None)
+                detail = f"HTTP {status}" if status else type(exc).__name__
+                raise ProviderError(f"{self.provider_name} request failed: {detail}") from None
             raw, tokens_in, tokens_out = self._response(payload)
             try:
                 parsed = _json_object(raw)
@@ -296,3 +350,19 @@ class LiveLLM:
             )
             cache.put(key, self.provider, self.model, PROMPT_VERSION, parsed)
             return parsed
+
+
+class _NoCache:
+    """Stand-in for :class:`ResponseCache` when a caller opts out of caching."""
+
+    def __enter__(self) -> "_NoCache":
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        return None
+
+    def get(self, key: str) -> None:
+        return None
+
+    def put(self, *args: object) -> None:
+        return None

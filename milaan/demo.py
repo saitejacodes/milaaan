@@ -19,7 +19,9 @@ from __future__ import annotations
 
 import csv
 import io
+import ipaddress
 import json
+import socket
 import time
 from dataclasses import dataclass, field
 from datetime import date, datetime
@@ -30,6 +32,7 @@ from milaan.db import reading
 from milaan.engine.pipeline import run_pipeline
 from milaan.evalx.harness import evaluate_run
 from milaan.evalx.metrics import operational_metrics
+from milaan.llm.live import LiveLLM, LLMSettings
 from milaan.generator.emit import BANK_FIELDS, ORDER_FIELDS, TXN_FIELDS, generate_to_directory
 from milaan.money import format_paise
 from milaan.view import ExceptionView, build_exception_views
@@ -297,3 +300,67 @@ def scorecard(workdir: Path) -> dict[str, Any]:
                     "failed": [o.label for o in outcomes if not o.passed]},
         "seconds": round(time.perf_counter() - started, 1),
     }
+
+
+# --------------------------------------------------------------- bring your own key
+
+# Visitor-facing provider names -> (Milaan provider, default base URL, suggested model).
+# Model names change often; the visitor can type any model their account offers.
+BYOK_PROVIDERS = {
+    "OpenAI": ("openai-compatible", "https://api.openai.com/v1", "gpt-4.1-mini"),
+    "Anthropic (Claude)": ("anthropic", "", "claude-haiku-4-5"),
+    "Google Gemini": ("gemini", "", "gemini-2.5-flash"),
+    "Other OpenAI-compatible (Groq, OpenRouter, Together…)": ("openai-compatible", "", ""),
+}
+
+
+def check_public_https_url(url: str) -> str:
+    """Refuse URLs that would let a visitor aim the server at its own network.
+
+    Only ``https://`` to a host that resolves exclusively to public addresses is
+    allowed: no localhost, private ranges, link-local or cloud metadata IPs.
+    """
+    from urllib.parse import urlsplit
+
+    parts = urlsplit(url.strip())
+    if parts.scheme != "https" or not parts.hostname:
+        raise ValueError("The base URL must start with https:// and name a host.")
+    host = parts.hostname
+    if host == "localhost" or host.endswith((".localhost", ".local", ".internal")):
+        raise ValueError("The base URL must be a public internet address.")
+    try:
+        addresses = {info[4][0] for info in socket.getaddrinfo(host, parts.port or 443)}
+    except socket.gaierror as exc:
+        raise ValueError(f"Could not resolve {host}.") from exc
+    for address in addresses:
+        ip = ipaddress.ip_address(address.split("%")[0])
+        if not ip.is_global:
+            raise ValueError("The base URL must be a public internet address.")
+    return url.strip().rstrip("/")
+
+
+def byok_client(provider_label: str, model: str, api_key: str, base_url: str = "") -> LiveLLM:
+    """A model client holding one visitor's key in memory only.
+
+    The key is never written to the environment, a file, the response cache,
+    the run database or a log. Calls are not cached, so one visitor's
+    questions are never replayed to another.
+    """
+    if provider_label not in BYOK_PROVIDERS:
+        raise ValueError("Choose a provider.")
+    provider, default_url, _ = BYOK_PROVIDERS[provider_label]
+    if not model.strip():
+        raise ValueError("Enter a model name.")
+    if not api_key.strip():
+        raise ValueError("Enter your API key.")
+    url = default_url
+    if provider_label.startswith("Other"):
+        if not base_url.strip():
+            raise ValueError("Enter the provider's base URL, e.g. https://api.groq.com/openai/v1")
+        url = check_public_https_url(base_url)
+    settings = LLMSettings(provider=provider, model=model.strip(), api_key=api_key.strip(),
+                           base_url=url, timeout_seconds=20.0, max_tokens=300)
+    client = LiveLLM(settings, use_cache=False)
+    if not client.available:
+        raise ValueError("Those provider settings are incomplete.")
+    return client

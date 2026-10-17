@@ -100,6 +100,7 @@ App tab.
 - [ ] **Exceptions**: clicking a row shows money at stake and next action.
 - [ ] **Ask the agent**: "Why is cash blocked?" shows 3 steps.
 - [ ] "Delete all exceptions." is refused and says *unchanged*.
+- [ ] Optional: **Use your own LLM API key** with your key → *Connect and test* → ask a question; the caption says *Tools chosen by your model*. Press **Forget**.
 - [ ] **Upload**: download the three sample CSVs, upload them back, and reconcile.
 
 ## 6. Put the link everywhere
@@ -132,7 +133,13 @@ Actions**:
 
 ## Safety notes
 
-- The demo never reads `.env` and never calls a model; the agent runs in offline mode.
+- The demo never reads `.env` and never uses a server-side key. By default the agent
+  runs offline. A visitor may connect **their own** LLM key for their session only:
+  it stays in that session's memory, is sent only to the provider they chose, and
+  is never put in environment variables, cached, logged or stored. Custom base URLs
+  must be public `https://` addresses. To turn this off, set the Space variable
+  `MILAAN_DEMO_BYOK=0` (Space → Settings → Variables and secrets).
+- Never add your own API key as a Space secret for the demo; visitors would spend it.
 - Each visitor gets a private temporary copy of the run database; questions
   append audit rows only to that copy.
 - Uploads are limited to 5 MB per file and 25,000 rows, and are never stored

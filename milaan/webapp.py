@@ -6,6 +6,7 @@ Every number on screen is produced by running the engine in this process.
 
 from __future__ import annotations
 
+import os
 import shutil
 import tempfile
 from pathlib import Path
@@ -15,6 +16,7 @@ import streamlit as st
 from milaan import demo
 from milaan.agent.investigate import investigate
 from milaan.evalx.ai_probes import accounting_state
+from milaan.llm.live import ProviderError
 from milaan.money import format_paise
 
 st.set_page_config(page_title="Milaan · AI payment reconciliation", page_icon=":material/account_balance:",
@@ -274,7 +276,37 @@ def _exceptions_tab() -> None:
 # ------------------------------------------------------------------ agent
 
 
+ROUTING_LABELS = {
+    "live_llm": "🤖 Tools chosen by your model, validated against the allow-list",
+    "deterministic": "⚙️ Tools chosen by the offline deterministic router",
+}
+
+
+def _routing_caption(result: dict) -> None:
+    routing = result.get("routing", {})
+    mode = routing.get("mode")
+    calls = routing.get("llm_calls", [])
+    notes = routing.get("notes", [])
+    if mode == "deterministic_fallback":
+        reason = next((n for n in notes if n.startswith("live_provider_unusable")), "")
+        st.warning("Your model's answer was unusable "
+                   f"({reason.split(':', 1)[-1] or 'provider error'}), so the offline router "
+                   "was used instead. Check the model name and key.")
+    elif "invalid_selection_refused" in notes:
+        st.warning("Your model named a tool or argument outside the allow-list, so that "
+                   "selection was refused rather than executed.")
+    if mode in ROUTING_LABELS:
+        label = ROUTING_LABELS[mode]
+        if calls:
+            tokens = sum((c.get("tokens_in") or 0) + (c.get("tokens_out") or 0) for c in calls)
+            latency = sum(c.get("latency_ms") or 0 for c in calls)
+            label += (f" · {len(calls)} model call{'s' if len(calls) != 1 else ''}, "
+                      f"{tokens:,} tokens, {latency:,} ms · drill-down steps follow the evidence")
+        st.caption(label)
+
+
 def _render_result(result: dict, unchanged: bool | None) -> None:
+    _routing_caption(result)
     if result["status"] == "refused":
         st.error(result["answer"])
         mode = result.get("routing", {}).get("mode")
@@ -299,13 +331,74 @@ def _render_result(result: dict, unchanged: bool | None) -> None:
                     if unchanged else "❌ Accounting tables changed."))
 
 
+def _byok_enabled() -> bool:
+    return os.getenv("MILAAN_DEMO_BYOK", "1") != "0"
+
+
+def _byok_panel() -> None:
+    """Optional: a visitor brings their own model and key for this session only."""
+    client = st.session_state.get("llm_client")
+    title = (f"🔑 Your model is connected: {client.provider_name} · {client.model}" if client
+             else "🔑 Optional: use your own LLM API key")
+    with st.expander(title, expanded=False):
+        st.markdown(
+            "By default the agent runs **offline** with a deterministic router: no model, no "
+            "key, no cost. Connect your own model and it will choose the read-only tools "
+            "instead. The safety rules don't change: write requests are still refused before "
+            "the model is asked, and the model can only *pick* a tool from the allow-list. "
+            "It never writes the answer."
+        )
+        st.caption(
+            "Your key is kept only in this browser session's server memory, sent only to the "
+            "provider you choose, and never logged, cached or stored. It is forgotten when you "
+            "close the tab or press Forget. Use a key with a spending limit. For full control, "
+            "run Milaan locally (see the README)."
+        )
+        if client:
+            if st.button("Forget my key and go back offline"):
+                st.session_state.pop("llm_client", None)
+                st.rerun()
+            return
+        # Outside the form so the suggested model follows the provider choice.
+        provider = st.selectbox("Provider", list(demo.BYOK_PROVIDERS))
+        with st.form("byok"):
+            model = st.text_input("Model", value=demo.BYOK_PROVIDERS[provider][2],
+                                  key=f"byok-model-{provider}",
+                                  help="Any model your account can use. Edit if needed.")
+            base_url = (st.text_input("Base URL", placeholder="https://api.groq.com/openai/v1")
+                        if provider.startswith("Other") else "")
+            api_key = st.text_input("API key", type="password", autocomplete="off")
+            submitted = st.form_submit_button("Connect and test", type="primary")
+        if submitted:
+            try:
+                candidate = demo.byok_client(provider, model, api_key, base_url)
+                run = _agent_run()
+                with st.spinner("Asking your model to pick a tool for one test question…"):
+                    probe = investigate(run.run_dir, run.database, "What is our cash position?",
+                                        "live", llm_client=candidate)
+            except (ValueError, ProviderError) as exc:
+                st.error(str(exc))
+                return
+            if probe["routing"].get("mode") != "live_llm":
+                st.error("The test call did not succeed. Check the model name and key. "
+                         "Nothing was saved.")
+                return
+            st.session_state.llm_client = candidate
+            st.rerun()
+
+
 def _agent_tab() -> None:
     run = _agent_run()
     note = ("" if _current_run().verified
             else " (uploaded runs have no evaluation gate, so the agent uses the demo run)")
+    client = st.session_state.get("llm_client")
+    router = (f"your model ({client.provider_name} · {client.model})" if client
+              else "offline deterministic router, no API key")
     st.markdown("The agent picks **read-only** tools, chains them, and shows every step. "
-                "Answers come from the database, never from model prose. Offline mode: "
-                f"deterministic router, no API key.{note}")
+                "Answers come from the database, never from model prose. "
+                f"Router: **{router}**.{note}")
+    if _byok_enabled():
+        _byok_panel()
     st.caption("Try a question")
     cols = st.columns(len(EXAMPLES))
     for col, question in zip(cols, EXAMPLES):
@@ -322,7 +415,9 @@ def _agent_tab() -> None:
     question = typed or st.session_state.pop("pending_question", None)
     if question:
         before = accounting_state(run.database)
-        result = investigate(run.run_dir, run.database, question, "mock")
+        client = st.session_state.get("llm_client")
+        result = investigate(run.run_dir, run.database, question,
+                             "live" if client else "mock", llm_client=client)
         unchanged = accounting_state(run.database) == before
         history.append((question, result, unchanged))
         del history[:-10]

@@ -7,6 +7,8 @@ gatherUsageStats = false
 
 [client]
 toolbarMode = "viewer"
+# Never show tracebacks to visitors: a stack frame could include request data.
+showErrorDetails = "none"
 
 [theme]
 primaryColor = "#D99A2B"
