@@ -7,7 +7,7 @@ import sqlite3
 from pathlib import Path
 from typing import Any, Callable
 
-from milaan.db import connect
+from milaan.db import reading
 
 
 def money(paise: int) -> str:
@@ -40,8 +40,8 @@ class FinanceTools:
         self.telemetry = (json.loads(telemetry_path.read_text(encoding="utf-8"))
                           if telemetry_path.exists() else {})
 
-    def _connection(self) -> sqlite3.Connection:
-        return connect(self.database_path)
+    def _connection(self):
+        return reading(self.database_path)
 
     @staticmethod
     def _exception_rows(conn: sqlite3.Connection) -> list[dict[str, Any]]:

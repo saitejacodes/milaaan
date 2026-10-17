@@ -272,7 +272,7 @@ def _finish(database_path: Path, question: str, result: dict[str, Any],
     result["routing"] = routing
     # The reconciliation run id records its original LLM mode. Resolve that id
     # from the database instead of trusting the question-mode label.
-    with db.connect(database_path) as conn:
+    with db.reading(database_path) as conn:
         stored_run = conn.execute("SELECT run_id FROM runs").fetchone()[0]
     _record_query(database_path, stored_run, question, routing, call)
     return result

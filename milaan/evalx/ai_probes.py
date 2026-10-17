@@ -20,7 +20,7 @@ from typing import Any, Callable
 from unittest.mock import MagicMock, patch
 
 from milaan.agent.router import ask_finance
-from milaan.db import connect
+from milaan.db import reading
 
 
 STATE_TABLES = (
@@ -67,7 +67,7 @@ def _fake_httpx(content: str) -> types.SimpleNamespace:
 
 def accounting_state(database: Path) -> dict[str, Any]:
     """Content fingerprint of every table the agent must never touch."""
-    with connect(database) as conn:
+    with reading(database) as conn:
         return {
             table: sorted(
                 tuple(str(value) for value in row)

@@ -15,7 +15,7 @@ dependencies = []
 [project.optional-dependencies]
 llm = ["httpx==0.28.1"]
 dashboard = ["streamlit==1.49.1"]
-preview = ["pillow==12.3.0"]
+preview = ["pillow==11.3.0"]
 dev = ["httpx==0.28.1", "pytest==8.4.2", "pytest-cov==6.2.1"]
 
 [project.scripts]

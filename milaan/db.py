@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Iterator
 
 from milaan.models import BankLine, Decision, ExceptionItem, GatewayTxn, Order, Plane, SettlementBatch
 
@@ -102,6 +103,21 @@ def connect(path: Path | str) -> sqlite3.Connection:
         conn.close()
         raise RuntimeError("SQLite foreign-key enforcement is unavailable")
     return conn
+
+
+@contextmanager
+def reading(path: Path | str) -> Iterator[sqlite3.Connection]:
+    """Open a connection for reads and always close it.
+
+    ``with sqlite3.connect(...) as conn`` only commits or rolls back; it never
+    closes the connection, which leaks one file handle per call in a
+    long-running process such as the web demo.
+    """
+    conn = connect(path)
+    try:
+        yield conn
+    finally:
+        conn.close()
 
 
 def create_fresh(path: Path) -> sqlite3.Connection:

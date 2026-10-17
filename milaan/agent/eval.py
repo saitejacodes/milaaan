@@ -26,7 +26,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from milaan.agent.router import ask_finance
-from milaan.db import connect
+from milaan.db import reading
 from milaan.evalx.ai_probes import score_hostile_outputs
 
 
@@ -121,7 +121,7 @@ def _safety_cases() -> list[str]:
 
 
 def _corpus(database_path: Path) -> tuple[list[tuple[str, str | None]], list[str]]:
-    with connect(database_path) as conn:
+    with reading(database_path) as conn:
         order_id = conn.execute(
             "SELECT order_id FROM raw_orders ORDER BY order_id LIMIT 1"
         ).fetchone()[0]
@@ -142,7 +142,7 @@ def _corpus(database_path: Path) -> tuple[list[tuple[str, str | None]], list[str
 
 def _accounting_fingerprint(database_path: Path) -> tuple[int, int, int, int]:
     """Counts that must be identical before and after the whole suite runs."""
-    with connect(database_path) as conn:
+    with reading(database_path) as conn:
         return tuple(  # type: ignore[return-value]
             int(conn.execute(f"SELECT count(*) FROM {table}").fetchone()[0])
             for table in ("matches", "match_members", "exceptions", "settlement_batches")

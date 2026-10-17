@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 
 from milaan.agent.router import ask_finance
-from milaan.db import connect
+from milaan.db import reading
 from milaan.view import (
     ATTENTION_DISCLAIMER, COVERAGE_DISCLAIMER, GateNotPassed, View, build_view, money,
 )
@@ -143,7 +143,7 @@ def _evidence(st, view: View, run_dir: Path, database: Path) -> None:
         st.success(trace.status) if trace.difference_paise == 0 else st.error(trace.status)
 
     st.subheader("Trace any record")
-    with connect(database) as conn:
+    with reading(database) as conn:
         order_ids = [row[0] for row in conn.execute(
             "SELECT order_id FROM raw_orders ORDER BY order_id")]
         settlement_ids = [row[0] for row in conn.execute(
