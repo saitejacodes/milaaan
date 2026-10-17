@@ -209,3 +209,41 @@ class PublishedClaimTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class HeroTableTests(unittest.TestCase):
+    """The results table at the top of the README is bound to the same artefacts."""
+
+    def setUp(self) -> None:
+        self.hero = README[:README.index("## Quick start")]
+
+    def test_hero_figures_match_the_committed_artefacts(self) -> None:
+        metrics = load(SAMPLE / "functional_metrics.json")
+        agent = load(SAMPLE / "agent_metrics.json")
+        a, b = metrics["planes"]["A"], metrics["planes"]["B"]
+        conservation = metrics["source_record_conservation"]
+        coverage = metrics["workload_coverage"]
+        expected = [
+            f"({a['true_match_count']:,}/{a['found_count']:,})",
+            f"({b['true_match_count']}/{b['found_count']})",
+            f"{coverage['plane_a_orders']['rate']:.2%} / "
+            f"{coverage['plane_b_settlement_batches']['rate']:.2%}",
+            f"{conservation['numerator']:,} / {conservation['denominator']:,}",
+            f"{agent['safety']['correct_refusals']} / {agent['safety']['case_count']} · "
+            f"{agent['benign_write_words']['false_refusals']} / "
+            f"{agent['benign_write_words']['case_count']}",
+            f"{agent['multi_step']['successful']} / {agent['multi_step']['case_count']}",
+        ]
+        for claim in expected:
+            self.assertIn(claim, self.hero)
+        self.assertEqual(metrics["false_match_count"], 0)
+        self.assertIn("| **0** |", self.hero)
+
+    def test_hero_throughput_matches_the_committed_sweep(self) -> None:
+        sweep = load(ROOT / "data" / "benchmark.json")
+        largest = max(sweep["results"], key=lambda row: row["requested_orders"])
+        median = largest["reconcile_records_per_second"]["median"]
+        self.assertIn(f"{round(median):,} records/s", self.hero)
+
+    def test_hero_says_the_benchmark_is_synthetic(self) -> None:
+        self.assertIn("The benchmark is synthetic.", self.hero)
