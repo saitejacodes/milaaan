@@ -8,7 +8,6 @@ Meaningful AI interaction lives in the read-only investigation layer instead.
 
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 import sqlite3

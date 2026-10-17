@@ -146,116 +146,27 @@ def _source_conservation(
     }
 
 
-def compute_metrics(conn: sqlite3.Connection, manifest: dict[str, Any]) -> dict[str, Any]:
-    run = conn.execute("SELECT * FROM runs").fetchone()
+def operational_metrics(conn: sqlite3.Connection) -> dict[str, Any]:
+    """Everything that can be computed without an answer key.
+
+    Workload coverage, amount conservation, source-record conservation and the
+    cash position depend only on the run database. They are shared by
+    :func:`compute_metrics` (benchmark runs) and by unscored runs over
+    uploaded files, so both report cash with exactly the same rules.
+    """
     orders = {row["order_id"]: row for row in conn.execute("SELECT * FROM raw_orders")}
     txns = {row["txn_id"]: row for row in conn.execute("SELECT * FROM raw_txns")}
     bank = {row["line_id"]: row for row in conn.execute("SELECT * FROM raw_bank")}
     batches = {row["settlement_id"]: row
                for row in conn.execute("SELECT * FROM settlement_batches")}
     quarantine = list(conn.execute("SELECT * FROM quarantine_rows ORDER BY id"))
-    members_by_batch: dict[str, set[str]] = defaultdict(set)
-    for txn_id, row in txns.items():
-        if row["settlement_id"]:
-            members_by_batch[row["settlement_id"]].add(txn_id)
-
     actual_by_plane = {plane: _actual_matches(conn, plane) for plane in ("A", "B")}
-    # Mandatory truth contract. Missing or partial facts fail closed here rather
-    # than degrading to a weaker identifier-only comparison.
-    require_complete_truth(manifest)
-    tier_labels = manifest["tier_labels"]
-    match_facts = manifest["match_facts"]
-    planes: dict[str, Any] = {}
-    all_expected_entities: set[str] = set()
-    actual_bucket_counts: Counter[str] = Counter()
-
-    for plane, key in (("A", "plane_a_matches"), ("B", "plane_b_matches")):
-        expected = {tuple(pair) for pair in manifest["expectations"][key]}
-        facts = match_facts[plane]
-        correct_pairs: set[tuple[str, str]] = set()
-        correct_match_ids: set[int] = set()
-        for item in actual_by_plane[plane]:
-            pair = item["pair"]
-            valid = pair in expected
-            if valid:
-                # Amount, membership and identifier facts are always checked. A
-                # pair whose money no longer equals the canonical money is a
-                # false match, never a correct one.
-                if plane == "A":
-                    payment_id, order_id = pair
-                    fact = facts.get(payment_id)
-                    payment, order = txns.get(payment_id), orders.get(order_id)
-                    valid = bool(
-                        fact and fact["order_id"] == order_id and payment and order
-                        and int(payment["gross_paise"]) == int(fact["payment_gross_paise"])
-                        and int(order["amount_paise"]) == int(fact["order_amount_paise"])
-                        and int(item["amount_diff_paise"]) == 0
-                    )
-                else:
-                    settlement_id, bank_line_id = pair
-                    fact = facts.get(settlement_id)
-                    batch, line = batches.get(settlement_id), bank.get(bank_line_id)
-                    valid = bool(
-                        fact and fact["bank_line_id"] == bank_line_id and batch and line
-                        and int(batch["amount_paise"]) == int(fact["batch_amount_paise"])
-                        and int(line["credit_paise"]) == int(fact["bank_credit_paise"])
-                        and members_by_batch.get(settlement_id, set())
-                        == set(fact["member_txn_ids"])
-                        and int(item["amount_diff_paise"]) == 0
-                    )
-            if valid:
-                correct_pairs.add(pair)
-                correct_match_ids.add(item["match_id"])
-            actual_bucket_counts.update(pair)
-        for pair in expected:
-            all_expected_entities.update(pair)
-        tiers: dict[str, dict[str, int | float]] = {}
-        for tier in sorted({tier_labels.get(pair[0], "T0") for pair in expected}):
-            expected_tier = {pair for pair in expected if tier_labels.get(pair[0], "T0") == tier}
-            tiers[tier] = _ratio(len(correct_pairs & expected_tier), len(expected_tier))
-        found_count = len(actual_by_plane[plane])
-        false_count = found_count - len(correct_match_ids)
-        planes[plane] = {
-            "auto_match": _ratio(len(correct_pairs), len(expected)),
-            "true_match_count": len(correct_match_ids),
-            "expected_match_recall": _ratio(len(correct_pairs), len(expected)),
-            "match_precision": _ratio(len(correct_match_ids), found_count),
-            "found_count": found_count,
-            "expected_count": len(expected),
-            "false_match_count": false_count,
-            "false_match_rate": _ratio(false_count, found_count),
-            "tier_coverage": tiers,
-        }
-
-    actual_exception_rows = conn.execute(
-        "SELECT scope_ids,reason_code,evidence FROM exceptions ORDER BY id"
-    ).fetchall()
     actual_exceptions = [
         {"ids": frozenset(json.loads(row["scope_ids"])), "code": row["reason_code"],
          "evidence": json.loads(row["evidence"])}
-        for row in actual_exception_rows
+        for row in conn.execute("SELECT scope_ids,reason_code,evidence FROM exceptions ORDER BY id")
     ]
     exception_ids = {entity_id for item in actual_exceptions for entity_id in item["ids"]}
-    for item in actual_exceptions:
-        actual_bucket_counts.update(item["ids"])
-    expected_exceptions = manifest["expectations"]["exceptions"]
-    all_expected_entities.update(entity_id for item in expected_exceptions for entity_id in item["ids"])
-    recalled, matched_actual = _maximum_exception_matching(expected_exceptions, actual_exceptions)
-    exactly_one = sum(actual_bucket_counts[entity_id] == 1 for entity_id in all_expected_entities)
-
-    run_hashes = {
-        "orders": run["orders_sha256"],
-        "gateway_recon": run["txns_sha256"],
-        "bank": run["bank_sha256"],
-    }
-    manifest_hashes = manifest.get("input_hashes", {})
-    hash_checks = {name: manifest_hashes.get(name) == value
-                   for name, value in run_hashes.items()}
-    input_integrity = {
-        "available": bool(manifest_hashes),
-        "all_match": bool(manifest_hashes) and all(hash_checks.values()),
-        "checks": hash_checks,
-    }
 
     matched_a_orders = len({item["pair"][1] for item in actual_by_plane["A"]})
     matched_a_payments = len({item["pair"][0] for item in actual_by_plane["A"]})
@@ -355,6 +266,128 @@ def compute_metrics(conn: sqlite3.Connection, manifest: dict[str, Any]) -> dict[
     }
 
     return {
+        "workload_coverage": workload_coverage,
+        "amount_conservation": amount_conservation,
+        "source_record_conservation": _source_conservation(
+            orders, txns, bank, quarantine, actual_by_plane["A"], actual_by_plane["B"],
+            exception_ids,
+        ),
+        "cash_position": cash_position,
+    }
+
+
+def compute_metrics(conn: sqlite3.Connection, manifest: dict[str, Any]) -> dict[str, Any]:
+    run = conn.execute("SELECT * FROM runs").fetchone()
+    orders = {row["order_id"]: row for row in conn.execute("SELECT * FROM raw_orders")}
+    txns = {row["txn_id"]: row for row in conn.execute("SELECT * FROM raw_txns")}
+    bank = {row["line_id"]: row for row in conn.execute("SELECT * FROM raw_bank")}
+    batches = {row["settlement_id"]: row
+               for row in conn.execute("SELECT * FROM settlement_batches")}
+    members_by_batch: dict[str, set[str]] = defaultdict(set)
+    for txn_id, row in txns.items():
+        if row["settlement_id"]:
+            members_by_batch[row["settlement_id"]].add(txn_id)
+
+    actual_by_plane = {plane: _actual_matches(conn, plane) for plane in ("A", "B")}
+    # Mandatory truth contract. Missing or partial facts fail closed here rather
+    # than degrading to a weaker identifier-only comparison.
+    require_complete_truth(manifest)
+    tier_labels = manifest["tier_labels"]
+    match_facts = manifest["match_facts"]
+    planes: dict[str, Any] = {}
+    all_expected_entities: set[str] = set()
+    actual_bucket_counts: Counter[str] = Counter()
+
+    for plane, key in (("A", "plane_a_matches"), ("B", "plane_b_matches")):
+        expected = {tuple(pair) for pair in manifest["expectations"][key]}
+        facts = match_facts[plane]
+        correct_pairs: set[tuple[str, str]] = set()
+        correct_match_ids: set[int] = set()
+        for item in actual_by_plane[plane]:
+            pair = item["pair"]
+            valid = pair in expected
+            if valid:
+                # Amount, membership and identifier facts are always checked. A
+                # pair whose money no longer equals the canonical money is a
+                # false match, never a correct one.
+                if plane == "A":
+                    payment_id, order_id = pair
+                    fact = facts.get(payment_id)
+                    payment, order = txns.get(payment_id), orders.get(order_id)
+                    valid = bool(
+                        fact and fact["order_id"] == order_id and payment and order
+                        and int(payment["gross_paise"]) == int(fact["payment_gross_paise"])
+                        and int(order["amount_paise"]) == int(fact["order_amount_paise"])
+                        and int(item["amount_diff_paise"]) == 0
+                    )
+                else:
+                    settlement_id, bank_line_id = pair
+                    fact = facts.get(settlement_id)
+                    batch, line = batches.get(settlement_id), bank.get(bank_line_id)
+                    valid = bool(
+                        fact and fact["bank_line_id"] == bank_line_id and batch and line
+                        and int(batch["amount_paise"]) == int(fact["batch_amount_paise"])
+                        and int(line["credit_paise"]) == int(fact["bank_credit_paise"])
+                        and members_by_batch.get(settlement_id, set())
+                        == set(fact["member_txn_ids"])
+                        and int(item["amount_diff_paise"]) == 0
+                    )
+            if valid:
+                correct_pairs.add(pair)
+                correct_match_ids.add(item["match_id"])
+            actual_bucket_counts.update(pair)
+        for pair in expected:
+            all_expected_entities.update(pair)
+        tiers: dict[str, dict[str, int | float]] = {}
+        for tier in sorted({tier_labels.get(pair[0], "T0") for pair in expected}):
+            expected_tier = {pair for pair in expected if tier_labels.get(pair[0], "T0") == tier}
+            tiers[tier] = _ratio(len(correct_pairs & expected_tier), len(expected_tier))
+        found_count = len(actual_by_plane[plane])
+        false_count = found_count - len(correct_match_ids)
+        planes[plane] = {
+            "auto_match": _ratio(len(correct_pairs), len(expected)),
+            "true_match_count": len(correct_match_ids),
+            "expected_match_recall": _ratio(len(correct_pairs), len(expected)),
+            "match_precision": _ratio(len(correct_match_ids), found_count),
+            "found_count": found_count,
+            "expected_count": len(expected),
+            "false_match_count": false_count,
+            "false_match_rate": _ratio(false_count, found_count),
+            "tier_coverage": tiers,
+        }
+
+    actual_exception_rows = conn.execute(
+        "SELECT scope_ids,reason_code,evidence FROM exceptions ORDER BY id"
+    ).fetchall()
+    actual_exceptions = [
+        {"ids": frozenset(json.loads(row["scope_ids"])), "code": row["reason_code"],
+         "evidence": json.loads(row["evidence"])}
+        for row in actual_exception_rows
+    ]
+    for item in actual_exceptions:
+        actual_bucket_counts.update(item["ids"])
+    expected_exceptions = manifest["expectations"]["exceptions"]
+    all_expected_entities.update(entity_id for item in expected_exceptions for entity_id in item["ids"])
+    recalled, matched_actual = _maximum_exception_matching(expected_exceptions, actual_exceptions)
+    exactly_one = sum(actual_bucket_counts[entity_id] == 1 for entity_id in all_expected_entities)
+
+    run_hashes = {
+        "orders": run["orders_sha256"],
+        "gateway_recon": run["txns_sha256"],
+        "bank": run["bank_sha256"],
+    }
+    manifest_hashes = manifest.get("input_hashes", {})
+    hash_checks = {name: manifest_hashes.get(name) == value
+                   for name, value in run_hashes.items()}
+    input_integrity = {
+        "available": bool(manifest_hashes),
+        "all_match": bool(manifest_hashes) and all(hash_checks.values()),
+        "checks": hash_checks,
+    }
+
+    operational = operational_metrics(conn)
+
+    return {
         "schema_version": "2.0.0",
         "seed": int(manifest["seed"]),
         "profile": manifest["profile"],
@@ -366,7 +399,7 @@ def compute_metrics(conn: sqlite3.Connection, manifest: dict[str, Any]) -> dict[
         },
         "input_integrity": input_integrity,
         "planes": planes,
-        "workload_coverage": workload_coverage,
+        "workload_coverage": operational["workload_coverage"],
         "false_match_count": planes["A"]["false_match_count"]
                              + planes["B"]["false_match_count"],
         "exceptions": {
@@ -380,10 +413,7 @@ def compute_metrics(conn: sqlite3.Connection, manifest: dict[str, Any]) -> dict[
         },
         "benchmark_entity_completeness": _ratio(exactly_one, len(all_expected_entities)),
         "completeness": _ratio(exactly_one, len(all_expected_entities)),
-        "source_record_conservation": _source_conservation(
-            orders, txns, bank, quarantine, actual_by_plane["A"], actual_by_plane["B"],
-            exception_ids,
-        ),
-        "amount_conservation": amount_conservation,
-        "cash_position": cash_position,
+        "source_record_conservation": operational["source_record_conservation"],
+        "amount_conservation": operational["amount_conservation"],
+        "cash_position": operational["cash_position"],
     }
