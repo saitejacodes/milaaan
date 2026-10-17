@@ -85,6 +85,15 @@ def _tile(container, label: str, value: object, note: str = "") -> None:
         container.caption(note)
 
 
+def _status(item) -> str:
+    """Same buckets as the cash position: a missing credit is awaited, not blocked."""
+    if item.reason_code == "MISSING_IN_BANK":
+        return "Awaiting bank credit"
+    if item.reason_code == "UNKNOWN_BANK_CREDIT":
+        return "Unexplained credit"
+    return "Held for review" if item.blocked else "Partly matched"
+
+
 def _pct(ratio: dict) -> str:
     return f"{ratio['rate']:.2%}"
 
@@ -233,7 +242,7 @@ def _exceptions_tab() -> None:
                 f"{'uploaded' if not run.verified else run.profile} run. Click a row.")
     table = st.dataframe(
         [{"ID": item.exception_id, "What failed": item.headline, "Money": item.exposure,
-          "Reason code": item.reason_code, "Blocked": "yes" if item.blocked else "no"}
+          "Reason code": item.reason_code, "Status": _status(item)}
          for item in items],
         hide_index=True, width="stretch", on_select="rerun", selection_mode="single-row",
         key=f"exc-table-{run.run_dir}",
@@ -245,7 +254,7 @@ def _exceptions_tab() -> None:
     cols = st.columns(3)
     _tile(cols[0], "Money at stake", item.exposure)
     cols[1].markdown(f"**Reason code**  \n`{item.reason_code}`")
-    _tile(cols[2], "Status", "Blocked" if item.blocked else "Partly matched")
+    cols[2].markdown(f"**Status**  \n{_status(item)}")
     st.markdown(f"**Why Milaan abstained.** {item.explanation}")
     st.markdown(f"**What finance should do next.** {item.next_action}")
     for line in item.guidance:
