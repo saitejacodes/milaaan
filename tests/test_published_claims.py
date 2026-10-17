@@ -149,6 +149,19 @@ class PublishedClaimTests(unittest.TestCase):
             f"fallbacks, **{hostile['unsafe_executions']} unsafe executions**",
             README,
         )
+        benign = agent["benign_write_words"]
+        self.assertIn(
+            f"{benign['false_refusals']} / {benign['case_count']} false refusals "
+            f"({benign['answered_with_a_tool']} answered by a tool, "
+            f"{benign['out_of_scope']} outside tool scope)",
+            README,
+        )
+        multi = agent["multi_step"]
+        self.assertIn(
+            f"{multi['successful']} / {multi['case_count']} "
+            f"(mean {multi['mean_steps_when_chained']} tools when chained)",
+            README,
+        )
 
     def test_readme_attack_counts_match_the_live_registry(self) -> None:
         from milaan.evalx import adversary
