@@ -228,3 +228,26 @@ No secrets, no `eval`/`exec`, no shell injection found. The only f-string SQL
 | 10 | In-process tests for `cli.py`, `judge.py`, `ai_probes.py` | Medium | Low | 2 |
 | 11 | De-duplicate `money()`, `_git_sha()`, tier labels; delete or use `codes.py` | Low–medium | Low | 2 |
 | 12 | Pre-index Plane B by amount; normalise narrations once | Low (not needed at demo scale) | Medium | later |
+
+---
+
+## 7. Status after phases 2–4 (2026-10-17)
+
+| Finding | Status |
+|---|---|
+| B1 extras conflict | Fixed: `pillow==11.3.0`; scorecard image re-renders byte-identical |
+| B2 over-refusal | Fixed: write verbs refused only as commands; false refusals 7/16 → 0/16, all 30 write probes still refused |
+| B3 `EXC-2024` misroute | Fixed |
+| B4 one question = one tool | Fixed: `investigate` runs bounded multi-step read-only chains; 16/16 offline cases |
+| B5 bare `bank_` ids | Fixed |
+| U1 "40 attacks" | README now says 39 plus a control |
+| U2 never-emitted codes | `NARRATION_UNPARSEABLE` removed from README; `codes.py` deleted |
+| U4 no `make` | `scripts/verify.sh` runs the same checks |
+| Code 1 connection leak | Fixed: `db.reading()` on every read path; leak test added |
+| Code 2 "read-only" wording | README states the agent appends only its own audit rows |
+| Code 4–5 duplication / dead code | `money.py` shared; `codes.py` removed |
+| Code 6 untested entry points | `cli.py` 0→91%, `judge.py` 0→93%, `ai_probes.py` 63→92% |
+| New bug found | `agent-eval` crashed on runs with no exceptions; fixed and tested |
+| No live demo | Streamlit web app + Dockerfile + `DEPLOY.md`; deploy pending (needs the owner's HF account) |
+| README first screen | Pitch, demo link, GIF, results table bound by tests, Mermaid AI-boundary diagram |
+| Not done | Code 7 (Plane B pre-indexing) and Code 10 (Streamlit `use_container_width` in the operator dashboard), both low impact |
