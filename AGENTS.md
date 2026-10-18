@@ -3,6 +3,33 @@
 You are working on **Milaan**, a payment-reconciliation engine with a read-only AI
 agent and a public web demo. Read this whole file before changing anything.
 
+## Where the project is
+
+| What | Path |
+|---|---|
+| Project folder (this working copy) | `/Users/saitejaveeramalla/testing/milaaan-main` |
+| GitHub clone, after following DEPLOY.md step 1 | `~/milaaan-github` (`/Users/saitejaveeramalla/milaaan-github`) |
+| GitHub repository | https://github.com/saitejacodes/milaaan |
+| Python environment | `.venv/` inside the project folder (Python 3.12) |
+| Latest work branch | `phase-5-byok` (contains every earlier phase) |
+
+Always `cd` into the project folder first and run every command from there:
+
+```bash
+cd /Users/saitejaveeramalla/testing/milaaan-main
+git status            # confirm you are in the repo and on the right branch
+```
+
+If `.venv/` is missing, create it:
+
+```bash
+python3.12 -m venv .venv
+.venv/bin/python -m pip install -e '.[dev,dashboard]'
+```
+
+`make` does not work on this Mac (Xcode command-line tools are not installed). Use
+`scripts/verify.sh` and the `python -m milaan...` commands instead.
+
 ## The one rule that overrides everything
 
 **Deterministic code owns every rupee. The AI can only read, never write.**
